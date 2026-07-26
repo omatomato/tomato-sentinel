@@ -1,0 +1,158 @@
+{
+  "contract_version": 1,
+  "tool_id": "network.passive_discovery",
+  "version": 1,
+  "category": "inventory",
+  "execution_location": "edge",
+  "interaction_modes": ["passive_observation"],
+  "risk_class": "R1",
+  "required_profile": "inventory",
+  "authorization_kind": "operation_scope",
+  "required_roles": ["inventory_operator"],
+  "required_capabilities": ["passive_network_observation"],
+  "requires_confirmation": false,
+  "requires_physical_confirmation": false,
+  "timeout_seconds": 130,
+  "maximum_duration_seconds": 120,
+  "maximum_targets": 1,
+  "resource_limits": {
+    "maximum_results": 128
+  },
+  "idempotency_behavior": "command_id",
+  "audit_behavior": "state_transitions_and_terminal",
+  "cancellation_behavior": "cooperative",
+  "outbound_network_policy": "none",
+  "parameters_schema": {
+    "type": "object",
+    "required": ["duration_seconds", "interface_id", "maximum_candidates"],
+    "properties": {
+      "duration_seconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 120
+      },
+      "interface_id": {
+        "type": "string",
+        "pattern": "^interface:[A-Za-z0-9][A-Za-z0-9._-]*$",
+        "maxLength": 160
+      },
+      "maximum_candidates": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 128
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "type": "object",
+    "required": [
+      "contract_version",
+      "job_id",
+      "status",
+      "execution_mode",
+      "candidates",
+      "reason_code"
+    ],
+    "properties": {
+      "contract_version": {"const": 1},
+      "job_id": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^job:discovery-[A-Za-z0-9._-]+$"
+          },
+          {"type": "null"}
+        ]
+      },
+      "status": {
+        "enum": ["running", "completed", "cancelled", "failed", "denied"]
+      },
+      "execution_mode": {"const": "simulated"},
+      "candidates": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "object",
+          "required": [
+            "contract_version",
+            "candidate_id",
+            "observer_id",
+            "network_id",
+            "interface_id",
+            "protocols",
+            "probable_types",
+            "authentication_required",
+            "first_observed_at",
+            "last_observed_at",
+            "confidence",
+            "enrollment_status",
+            "execution_mode"
+          ],
+          "properties": {
+            "contract_version": {"const": 1},
+            "candidate_id": {
+              "type": "string",
+              "pattern": "^candidate:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "observer_id": {
+              "type": "string",
+              "pattern": "^edge:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "network_id": {
+              "type": "string",
+              "pattern": "^network:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "interface_id": {
+              "type": "string",
+              "pattern": "^interface:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "protocols": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "arp_cache",
+                  "dhcp_lease",
+                  "mdns_announcement",
+                  "ssdp_notification",
+                  "ws_discovery_announcement"
+                ]
+              }
+            },
+            "probable_types": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "camera",
+                  "edge_node",
+                  "network_device",
+                  "sensor",
+                  "unknown"
+                ]
+              }
+            },
+            "authentication_required": {"type": ["boolean", "null"]},
+            "first_observed_at": {"type": "string", "format": "date-time"},
+            "last_observed_at": {"type": "string", "format": "date-time"},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "enrollment_status": {"const": "candidate"},
+            "execution_mode": {"const": "simulated"}
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "reason_code": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$",
+        "maxLength": 96
+      }
+    },
+    "unevaluatedProperties": false
+  }
+}

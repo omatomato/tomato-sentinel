@@ -8,6 +8,7 @@ from enum import StrEnum
 from tomato_sentinel_policy import (
     ActorContext,
     DeviceContext,
+    OperationScope,
     Profile,
     ResourceGrant,
 )
@@ -50,6 +51,7 @@ class ExecutionContext:
     actor: ActorContext
     device: DeviceContext
     resource_grant: ResourceGrant
+    operation_scope: OperationScope | None = None
 
 
 @dataclass(frozen=True, slots=True)

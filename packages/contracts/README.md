@@ -6,10 +6,14 @@ clients.
 The current set covers commands, policy requests and decisions, tool manifests,
 audit events, job transitions, temporally confirmed person events and
 notification deliveries. Device protocol contracts additionally cover board
-profiles, signed-envelope payloads, capability reports, visible profile state
-physical cancellation and bounded voice messages. Speech provider output uses
-a normalized transcription contract that contains text and an audio digest,
-never raw audio.
+profiles, signed-envelope payloads, capability reports, visible profile state,
+physical cancellation, bounded voice messages and non-secret simulated device
+identity status. Speech provider output uses a normalized transcription
+contract that contains text and an audio digest, never raw audio.
+
+Passive-discovery candidates have a separate untrusted contract. They are
+always labelled as simulated candidates and contain no enrollment grant,
+credential, raw network address or trusted asset identity.
 
 The initial schemas use JSON Schema Draft 2020-12. Schema IDs resolve within
 the `https://schemas.tomato-sentinel.invalid/` documentation namespace; the

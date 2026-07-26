@@ -1,0 +1,66 @@
+{
+  "contract_version": 1,
+  "module_id": "lab.soc",
+  "version": 1,
+  "display_name": "SOC Lab (simulado)",
+  "category": "soc",
+  "execution_location": "edge",
+  "risk_class": "R1",
+  "required_profile": "lab",
+  "authorization_kind": "operation_scope",
+  "required_roles": ["researcher"],
+  "required_capabilities": ["synthetic_soc_simulation"],
+  "required_hardware": [],
+  "requires_confirmation": true,
+  "requires_physical_confirmation": true,
+  "maximum_duration_seconds": 120,
+  "maximum_samples": 1000,
+  "supports_cancel": true,
+  "executor_id": "executor:soc-fixture-v1",
+  "parameters_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+      "scenario",
+      "duration_seconds",
+      "sample_count",
+      "detection_sensitivity"
+    ],
+    "properties": {
+      "scenario": {
+        "enum": ["alert_fatigue_baseline", "correlation_integrity"]
+      },
+      "duration_seconds": {"type": "integer", "minimum": 1, "maximum": 120},
+      "sample_count": {"type": "integer", "minimum": 1, "maximum": 1000},
+      "detection_sensitivity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+      "execution_mode",
+      "scenario",
+      "generated_events",
+      "detected_events",
+      "missed_events",
+      "mean_latency_ms"
+    ],
+    "properties": {
+      "execution_mode": {"const": "simulation"},
+      "scenario": {
+        "enum": ["alert_fatigue_baseline", "correlation_integrity"]
+      },
+      "generated_events": {"type": "integer", "minimum": 1, "maximum": 1000},
+      "detected_events": {"type": "integer", "minimum": 0, "maximum": 1000},
+      "missed_events": {"type": "integer", "minimum": 0, "maximum": 1000},
+      "mean_latency_ms": {"type": "integer", "minimum": 1}
+    },
+    "unevaluatedProperties": false
+  }
+}

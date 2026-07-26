@@ -48,9 +48,9 @@ The receiver rejects unknown devices, revoked credentials, invalid tags,
 unsupported versions, stale or future timestamps, reused message IDs,
 non-increasing sequences, unknown payload types and oversized messages.
 
-The in-memory simulator retains the latest 1,024 message IDs per device and a
-monotonic last-sequence value. Production replay persistence across process
-restart is not implied.
+The in-memory simulator retains the latest 1,024 message IDs per device and key
+generation, plus a monotonic last-sequence value for that identity generation.
+Production replay persistence across process restart is not implied.
 
 ### Simulation authentication
 
@@ -65,6 +65,38 @@ HMAC also does not provide payload confidentiality and therefore does not
 satisfy the production authenticated-encryption requirement. No network
 transport is introduced by this simulator.
 
+### Simulated identity lifecycle
+
+The in-memory registry models explicit provisioning, server-side status, key
+rotation and revocation. Provisioning is a deliberate registry call for one
+known device; discovery input is never accepted by this interface and cannot
+create an identity.
+
+Secrets enter only the in-memory registry API. They are absent from public
+models, status contracts, return values and reason-coded errors. Status reports
+the device ID, current key ID, board profile, firmware version, monotonic
+identity revision and `trusted` or `revoked` state, and is always labelled
+`execution_mode: simulation`.
+
+Rotation requires the exact current key ID, a distinct well-formed new key ID
+and at least 32 bytes of new simulation key material. Retired key IDs cannot be
+reused, and secret material cannot be shared between device identities or
+generations. Each simulated device is limited to 64 rotations. A retry with the
+same transition and same new key material is idempotent; a repeated key ID with
+different material is denied. Replay state is keyed by device and current key
+ID so a legitimately rotated device can start a new sequence while old-key
+messages fail authentication-context checks.
+
+Revocation requires the exact current key ID, is idempotent, increments the
+identity revision once and immediately blocks message verification and later
+rotation. Unknown devices remain unknown and are not implicitly registered.
+
+These methods are simulator configuration primitives, not remotely callable
+tools or operator-facing authorization endpoints. Production provisioning,
+rotation and revocation are administrative R2 operations and will require a
+registered contract, recovery role, exact-plan confirmation, expiry,
+tamper-evident audit and a dedicated credential provider before exposure.
+
 ### Device profiles
 
 The simulator boots into `assistant`. The active profile is always exposed as a
@@ -75,6 +107,35 @@ return the simulator to `assistant`.
 A signed device profile claim does not create server authorization. The
 existing policy engine still evaluates the command profile, actor, device,
 grant or scope and tool requirements.
+
+### Structured text delivery
+
+The simulated backend accepts a `text_command` only after protocol
+authentication and schema validation. The authenticated device ID must match
+both the execution context and the command's `source_device_id`. Envelope and
+command timestamps must be identical, and the correlation ID must match the
+command value or its command-ID default.
+
+Dispatch is a closed branch over `camera.status`, `camera.monitor`,
+`asset.list` and `network.passive_discovery`; no payload-provided name is
+dynamically imported or executed. Each branch repeats tool-parameter
+validation and uses its existing canonical target resolution, server-side
+policy, idempotency and audit controls. Unknown actions are denied before a
+service or worker starts.
+
+This gateway consumes structured simulator fixtures. It does not interpret
+free-form text and is not connected to the physical firmware's RAM-only local
+draft. Adding a real transport or converting operator text into a registered
+action remains separate work.
+
+The simulator exposes a closed menu composer for `camera.status`,
+`camera.monitor`, `asset.list` and `network.passive_discovery`. It accepts only
+preloaded non-secret lists of at most 32 camera, eight inventory and eight
+network/interface entries, applies the fixed required profile, bounds
+monitoring and discovery parameters, and exposes the stored-inventory change
+filter. These local lists are presentation state only: they neither enroll a
+resource nor grant access, and the backend still resolves canonical ownership,
+scope and authorization.
 
 ### Cancellation
 
@@ -100,5 +161,7 @@ transmit the payload, or perform speech-to-text.
 - Protocol and policy behavior can be tested without hardware or network I/O.
 - Board differences are explicit before C++ code exists.
 - The simulator must never be described as production-grade device identity.
+- Identity lifecycle state, retired key IDs and secret-reuse fingerprints
+  disappear on process restart.
 - Real audio drivers and encoding, key storage, encrypted transport and
   firmware compilation remain future work.

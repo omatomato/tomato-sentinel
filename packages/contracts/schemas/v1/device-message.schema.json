@@ -25,6 +25,8 @@
       "enum": [
         "capability_report",
         "profile_state",
+        "lab_dashboard_request",
+        "lab_plan_confirmation",
         "text_command",
         "voice_command",
         "cancel_request"

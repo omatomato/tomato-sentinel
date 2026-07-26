@@ -27,7 +27,21 @@ is retained only as an explicit future-compatibility profile. Bounded
 push-to-talk capture is simulated without microphone or network access.
 Reviewed audio fixtures can now traverse a deterministic simulated
 speech-to-text and exact-intent path into the existing authorized
-`camera.monitor` workflow.
+`camera.monitor` workflow. A separate R0 `asset.list` slice reads only
+pre-registered in-memory inventory and returns sanitized changes without
+network discovery. Bounded R1 passive discovery is now simulated with exact
+network scope, candidate limits and cancellation, but opens no socket and
+cannot enroll a discovered device. A simulation-only research-lab foundation
+now adds versioned module manifests, hashed experiment plans, an audited
+execution state machine, short-lived edge capability reports, fixture-only
+Spectra and SOC modules, a simulated Cardputer dashboard and a structured
+local-AI proposal boundary. The local edge application has no network listener
+or execution endpoint. Physical nRF24L01, CC1101, PN532 and photodiode profiles
+are registered only as disabled, unwired and untested candidates. The simulated
+Cardputer dashboard can now make a signed, replay-protected request for edge
+capabilities or a reviewed proposal. The first simulated R1 modules also need
+a short-lived, signed physical-confirmation event bound to the exact plan hash
+before the engine may start them.
 
 ## Core principle
 
@@ -49,6 +63,11 @@ Natural-language output is never executed directly.
 - [Language and toolchain decision](docs/decisions/ADR-0002-language-toolchain-and-contracts.md)
 - [Simulated device protocol decision](docs/decisions/ADR-0003-simulated-device-protocol.md)
 - [Simulated voice pipeline decision](docs/decisions/ADR-0004-simulated-voice-command-pipeline.md)
+- [Stored asset inventory decision](docs/decisions/ADR-0006-stored-asset-inventory-slice.md)
+- [Simulated passive discovery decision](docs/decisions/ADR-0007-simulated-passive-discovery.md)
+- [Research lab platform](docs/product/research-lab-platform.md)
+- [Local edge boundary](services/edge-agent/README.md)
+- [Local edge lab console](apps/edge-lab-console/README.md)
 - [Simulated orchestrator slice](services/orchestrator/README.md)
 - [Original specification snapshot](docs/product/product-specification-original.md)
 
@@ -61,9 +80,10 @@ firmware/cardputer/       Cardputer firmware and board profiles
 apps/api/                 public/control API
 apps/operator-console/    operator interface
 apps/mobile/              mobile client
-apps/edge-agent/          local discovery, camera and hardware edge runtime
+services/edge-agent/      disabled-by-default local edge application boundary
 services/                 bounded backend services
 packages/contracts/       shared commands, events and schemas
+packages/experiment-engine/ versioned modules, plans and state machine
 packages/policy-engine/   deterministic authorization
 packages/scope/           canonical scopes and resource grants
 integrations/             isolated external adapters

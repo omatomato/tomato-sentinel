@@ -36,3 +36,23 @@ The simulated voice gateway adds:
 
 It performs no speech inference or network I/O. Unknown audio, transcripts,
 aliases, profiles and device contexts fail closed before worker creation.
+
+The simulated text-command gateway verifies the signed device envelope, binds
+its source device, timestamp and correlation ID to the structured command, and
+dispatches only the fixed `camera.status`, `camera.monitor` and `asset.list`
+actions plus the scoped `network.passive_discovery` simulation. All paths reuse
+their existing schema validation, policy, target resolution, idempotency and
+audit behavior. The gateway opens no transport and does not consume the
+physical Cardputer's local draft.
+
+The R0 `asset.list` slice queries only an in-memory stored inventory. It can
+filter to new and changed assets and returns bounded summaries without private
+addresses or credential references. It performs no discovery, enrollment,
+network I/O or long-running work.
+
+The R1 passive-discovery slice consumes only reviewed in-memory candidates. It
+requires an exact tool/network operation scope that covers the complete
+duration, a configured interface, at most 120 seconds and at most 128
+candidates. It records job transitions and supports cooperative or signed
+physical cancellation. Candidates contain no raw address or credential and
+cannot enroll themselves.

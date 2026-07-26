@@ -1,0 +1,17 @@
+{
+  "contract_version": 1,
+  "hardware_id": "hardware:nrf24l01-receive-lab",
+  "version": 1,
+  "display_name": "nRF24L01 receive-only candidate",
+  "compatible_board_profiles": ["board-profile:cardputer-original-v1"],
+  "bus": "spi",
+  "interaction_modes": ["receive_only"],
+  "activation_state": "disabled",
+  "wiring_status": "unassigned",
+  "pins": [],
+  "driver_status": "not_integrated",
+  "transmit_permitted": false,
+  "write_permitted": false,
+  "electrical_review_status": "pending",
+  "tested_on_hardware": false
+}

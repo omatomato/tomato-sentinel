@@ -179,6 +179,52 @@ class CardputerSimulator:
             correlation_id=correlation_id,
         )
 
+    def lab_dashboard_request_message(
+        self,
+        request: Mapping[str, object],
+        *,
+        sent_at: datetime,
+        correlation_id: str,
+    ) -> dict[str, object]:
+        if self._profile.active_profile is not Profile.LAB:
+            raise PermissionError("lab dashboard requires the visible lab profile")
+        if request.get("active_profile") != Profile.LAB.value:
+            raise PermissionError("dashboard request profile is not visible")
+        if request.get("source_device_id") != self.device_id:
+            raise PermissionError("dashboard request source device does not match")
+        if request.get("correlation_id") != correlation_id:
+            raise PermissionError("dashboard request correlation does not match")
+        return self._message(
+            "lab_dashboard_request",
+            dict(request),
+            sent_at=sent_at,
+            correlation_id=correlation_id,
+        )
+
+    def lab_plan_confirmation_message(
+        self,
+        confirmation: Mapping[str, object],
+        *,
+        sent_at: datetime,
+        correlation_id: str,
+    ) -> dict[str, object]:
+        if self._profile.active_profile is not Profile.LAB:
+            raise PermissionError("lab confirmation requires the visible lab profile")
+        if confirmation.get("active_profile") != Profile.LAB.value:
+            raise PermissionError("confirmation profile is not visible")
+        if confirmation.get("source_device_id") != self.device_id:
+            raise PermissionError("confirmation source device does not match")
+        if confirmation.get("correlation_id") != correlation_id:
+            raise PermissionError("confirmation correlation does not match")
+        if confirmation.get("input_source") != "physical_confirm_key":
+            raise PermissionError("confirmation requires the physical confirm key")
+        return self._message(
+            "lab_plan_confirmation",
+            dict(confirmation),
+            sent_at=sent_at,
+            correlation_id=correlation_id,
+        )
+
     def _message(
         self,
         payload_type: str,

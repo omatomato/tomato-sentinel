@@ -1,0 +1,17 @@
+{
+  "contract_version": 1,
+  "hardware_id": "hardware:photodiode-capture-lab",
+  "version": 1,
+  "display_name": "Photodiode sensor-input candidate",
+  "compatible_board_profiles": ["board-profile:cardputer-original-v1"],
+  "bus": "adc",
+  "interaction_modes": ["sensor_input"],
+  "activation_state": "disabled",
+  "wiring_status": "unassigned",
+  "pins": [],
+  "driver_status": "not_integrated",
+  "transmit_permitted": false,
+  "write_permitted": false,
+  "electrical_review_status": "pending",
+  "tested_on_hardware": false
+}

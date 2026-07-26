@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/edge-capability-report.schema.json",
+  "title": "Tomato Sentinel edge capability report",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "edge_id",
+    "organization_id",
+    "agent_version",
+    "generated_at",
+    "valid_until",
+    "execution_mode",
+    "modules",
+    "report_hash"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "edge_id": {
+      "type": "string",
+      "pattern": "^edge:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "organization_id": {
+      "type": "string",
+      "pattern": "^organization:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "agent_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$",
+      "maxLength": 48
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "valid_until": {"type": "string", "format": "date-time"},
+    "execution_mode": {"const": "simulation"},
+    "modules": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": [
+          "module_id",
+          "module_version",
+          "executor_id",
+          "capabilities",
+          "hardware"
+        ],
+        "properties": {
+          "module_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+            "maxLength": 128
+          },
+          "module_version": {"type": "integer", "minimum": 1},
+          "executor_id": {
+            "type": "string",
+            "pattern": "^executor:[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "maxLength": 160
+          },
+          "capabilities": {
+            "type": "array",
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "maxLength": 96
+            }
+          },
+          "hardware": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^hardware:[A-Za-z0-9][A-Za-z0-9._-]*$",
+              "maxLength": 160
+            }
+          }
+        },
+        "unevaluatedProperties": false
+      }
+    },
+    "report_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "unevaluatedProperties": false
+}

@@ -21,7 +21,14 @@
       "pins": {
         "selector_a0": 8,
         "selector_a1": 9,
-        "selector_a2": 11
+        "selector_a2": 11,
+        "sense_0": 13,
+        "sense_1": 15,
+        "sense_2": 3,
+        "sense_3": 4,
+        "sense_4": 5,
+        "sense_5": 6,
+        "sense_6": 7
       }
     },
     "display": {

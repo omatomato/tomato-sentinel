@@ -5,24 +5,47 @@ import binascii
 import hashlib
 import hmac
 import json
+import re
 from collections import deque
 from collections.abc import Mapping
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Any, cast
 
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
-from .models import ProvisionedDevice, VerifiedDeviceMessage
+from .models import (
+    DeviceIdentityState,
+    DeviceIdentityStatus,
+    ProvisionedDevice,
+    VerifiedDeviceMessage,
+)
 
 MAXIMUM_ENVELOPE_BYTES = 32_768
 MAXIMUM_REPLAY_IDS_PER_DEVICE = 1_024
+MAXIMUM_KEY_ROTATIONS_PER_DEVICE = 64
+_TYPED_IDENTIFIER = re.compile(r"^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
 class DeviceMessageRejectedError(ValueError):
     def __init__(self, reason_code: str) -> None:
         super().__init__(reason_code)
         self.reason_code = reason_code
+
+
+class DeviceRegistryChangeRejectedError(ValueError):
+    def __init__(self, reason_code: str) -> None:
+        super().__init__(reason_code)
+        self.reason_code = reason_code
+
+
+@dataclass(slots=True)
+class _RegistryEntry:
+    device: ProvisionedDevice
+    secret: bytes = field(repr=False)
+    identity_revision: int = 1
+    retired_key_ids: set[str] = field(default_factory=set)
 
 
 class DeviceProtocolValidator:
@@ -67,17 +90,98 @@ class DeviceProtocolValidator:
 
 class DeviceRegistry:
     def __init__(self) -> None:
-        self._devices: dict[str, tuple[ProvisionedDevice, bytes]] = {}
+        self._devices: dict[str, _RegistryEntry] = {}
+        self._used_secret_fingerprints: set[bytes] = set()
 
-    def provision(self, device: ProvisionedDevice, secret: bytes) -> None:
+    def provision(
+        self,
+        device: ProvisionedDevice,
+        secret: bytes,
+    ) -> DeviceIdentityStatus:
         if device.device_id in self._devices:
-            raise ValueError("device already provisioned")
-        if len(secret) < 32:
-            raise ValueError("simulation device secret must contain at least 32 bytes")
-        self._devices[device.device_id] = (device, bytes(secret))
+            raise DeviceRegistryChangeRejectedError("DEVICE_ALREADY_PROVISIONED")
+        if device.revoked:
+            raise DeviceRegistryChangeRejectedError("DEVICE_REVOKED")
+        _validate_key_id(device.key_id)
+        _validate_secret(secret)
+        fingerprint = _secret_fingerprint(secret)
+        if fingerprint in self._used_secret_fingerprints:
+            raise DeviceRegistryChangeRejectedError("SECRET_REUSED")
+        entry = _RegistryEntry(device=device, secret=bytes(secret))
+        self._devices[device.device_id] = entry
+        self._used_secret_fingerprints.add(fingerprint)
+        return _status(entry)
+
+    def status(self, device_id: str) -> DeviceIdentityStatus | None:
+        entry = self._devices.get(device_id)
+        return None if entry is None else _status(entry)
+
+    def rotate_key(
+        self,
+        device_id: str,
+        *,
+        expected_key_id: str,
+        new_key_id: str,
+        new_secret: bytes,
+    ) -> DeviceIdentityStatus:
+        _validate_key_id(new_key_id)
+        _validate_secret(new_secret)
+        if new_key_id == expected_key_id:
+            raise DeviceRegistryChangeRejectedError("KEY_ID_UNCHANGED")
+
+        entry = self._require_entry(device_id)
+        if entry.device.revoked:
+            raise DeviceRegistryChangeRejectedError("DEVICE_REVOKED")
+        if entry.device.key_id == new_key_id:
+            if hmac.compare_digest(entry.secret, new_secret):
+                return _status(entry)
+            raise DeviceRegistryChangeRejectedError("KEY_ID_COLLISION")
+        if entry.device.key_id != expected_key_id:
+            raise DeviceRegistryChangeRejectedError("KEY_ID_MISMATCH")
+        if new_key_id in entry.retired_key_ids:
+            raise DeviceRegistryChangeRejectedError("KEY_ID_RETIRED")
+        if len(entry.retired_key_ids) >= MAXIMUM_KEY_ROTATIONS_PER_DEVICE:
+            raise DeviceRegistryChangeRejectedError("KEY_ROTATION_LIMIT_REACHED")
+        if hmac.compare_digest(entry.secret, new_secret):
+            raise DeviceRegistryChangeRejectedError("SECRET_UNCHANGED")
+        fingerprint = _secret_fingerprint(new_secret)
+        if fingerprint in self._used_secret_fingerprints:
+            raise DeviceRegistryChangeRejectedError("SECRET_REUSED")
+
+        entry.retired_key_ids.add(entry.device.key_id)
+        entry.device = replace(entry.device, key_id=new_key_id)
+        entry.secret = bytes(new_secret)
+        entry.identity_revision += 1
+        self._used_secret_fingerprints.add(fingerprint)
+        return _status(entry)
+
+    def revoke(
+        self,
+        device_id: str,
+        *,
+        expected_key_id: str,
+    ) -> DeviceIdentityStatus:
+        entry = self._require_entry(device_id)
+        if entry.device.key_id != expected_key_id:
+            raise DeviceRegistryChangeRejectedError("KEY_ID_MISMATCH")
+        if entry.device.revoked:
+            return _status(entry)
+
+        entry.device = replace(entry.device, revoked=True)
+        entry.identity_revision += 1
+        return _status(entry)
+
+    def _require_entry(self, device_id: str) -> _RegistryEntry:
+        entry = self._devices.get(device_id)
+        if entry is None:
+            raise DeviceRegistryChangeRejectedError("DEVICE_UNKNOWN")
+        return entry
 
     def _lookup(self, device_id: str) -> tuple[ProvisionedDevice, bytes] | None:
-        return self._devices.get(device_id)
+        entry = self._devices.get(device_id)
+        if entry is None:
+            return None
+        return entry.device, entry.secret
 
 
 class DeviceMessageVerifier:
@@ -88,9 +192,9 @@ class DeviceMessageVerifier:
     ) -> None:
         self._validator = validator
         self._registry = registry
-        self._message_ids: dict[str, set[str]] = {}
-        self._message_order: dict[str, deque[str]] = {}
-        self._last_sequences: dict[str, int] = {}
+        self._message_ids: dict[tuple[str, str], set[str]] = {}
+        self._message_order: dict[tuple[str, str], deque[str]] = {}
+        self._last_sequences: dict[tuple[str, str], int] = {}
 
     def verify(
         self,
@@ -141,19 +245,20 @@ class DeviceMessageVerifier:
             _verify_voice_command(payload, device)
 
         message_id = cast(str, envelope["message_id"])
-        device_message_ids = self._message_ids.setdefault(device_id, set())
+        replay_identity = (device_id, device.key_id)
+        device_message_ids = self._message_ids.setdefault(replay_identity, set())
         if message_id in device_message_ids:
             raise DeviceMessageRejectedError("MESSAGE_ID_REPLAYED")
         sequence = cast(int, envelope["sequence"])
-        if sequence <= self._last_sequences.get(device_id, 0):
+        if sequence <= self._last_sequences.get(replay_identity, 0):
             raise DeviceMessageRejectedError("SEQUENCE_REPLAYED")
 
-        message_order = self._message_order.setdefault(device_id, deque())
+        message_order = self._message_order.setdefault(replay_identity, deque())
         if len(message_order) >= MAXIMUM_REPLAY_IDS_PER_DEVICE:
             device_message_ids.remove(message_order.popleft())
         message_order.append(message_id)
         device_message_ids.add(message_id)
-        self._last_sequences[device_id] = sequence
+        self._last_sequences[replay_identity] = sequence
         return VerifiedDeviceMessage(
             message_id=message_id,
             device_id=device_id,
@@ -256,6 +361,35 @@ def _verify_voice_command(
     )
     if completed_at < recorded_at:
         raise DeviceMessageRejectedError("AUDIO_TIMESTAMP_INVALID")
+
+
+def _validate_key_id(key_id: str) -> None:
+    if len(key_id) > 160 or _TYPED_IDENTIFIER.fullmatch(key_id) is None:
+        raise DeviceRegistryChangeRejectedError("KEY_ID_INVALID")
+
+
+def _validate_secret(secret: bytes) -> None:
+    if len(secret) < 32:
+        raise DeviceRegistryChangeRejectedError("SECRET_TOO_SHORT")
+
+
+def _secret_fingerprint(secret: bytes) -> bytes:
+    return hashlib.sha256(secret).digest()
+
+
+def _status(entry: _RegistryEntry) -> DeviceIdentityStatus:
+    device = entry.device
+    state = (
+        DeviceIdentityState.REVOKED if device.revoked else DeviceIdentityState.TRUSTED
+    )
+    return DeviceIdentityStatus(
+        device_id=device.device_id,
+        key_id=device.key_id,
+        board_profile_id=device.board_profile.board_profile_id,
+        firmware_version=device.firmware_version,
+        identity_revision=entry.identity_revision,
+        state=state,
+    )
 
 
 def _require_aware(timestamp: datetime) -> None:

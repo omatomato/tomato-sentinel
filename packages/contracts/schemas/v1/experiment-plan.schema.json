@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/experiment-plan.schema.json",
+  "title": "Tomato Sentinel experiment plan",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "experiment_id",
+    "module_id",
+    "module_version",
+    "actor_id",
+    "organization_id",
+    "source_device_id",
+    "profile",
+    "targets",
+    "fixture_ids",
+    "parameters",
+    "requested_at",
+    "correlation_id",
+    "execution_mode",
+    "plan_hash",
+    "operation_scope_id"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^experiment:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "module_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "module_version": {"type": "integer", "minimum": 1},
+    "actor_id": {"$ref": "#/$defs/typed_id"},
+    "organization_id": {"$ref": "#/$defs/typed_id"},
+    "source_device_id": {"$ref": "#/$defs/typed_id"},
+    "profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/typed_id"}
+    },
+    "fixture_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^fixture:[A-Za-z0-9][A-Za-z0-9._-]*$",
+        "maxLength": 160
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "maxProperties": 32
+    },
+    "requested_at": {"type": "string", "format": "date-time"},
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^correlation:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "execution_mode": {"const": "simulation"},
+    "plan_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "operation_scope_id": {
+      "type": "string",
+      "pattern": "^scope:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}
