@@ -21,13 +21,48 @@ def test_schema_is_valid_draft_2020_12(schema_path: Path) -> None:
     Draft202012Validator.check_schema(load_json(schema_path))
 
 
-def test_camera_manifest_matches_contract() -> None:
+@pytest.mark.parametrize(
+    "manifest_name",
+    ["camera.monitor.v1.json", "camera.status.v1.json"],
+)
+def test_camera_manifest_matches_contract(manifest_name: str) -> None:
     schema = load_json(SCHEMAS / "tool-manifest.schema.json")
-    manifest = load_json(ROOT / "config" / "tools" / "camera.monitor.v1.json")
+    manifest = load_json(ROOT / "config" / "tools" / manifest_name)
 
     Draft202012Validator(schema).validate(manifest)
     Draft202012Validator.check_schema(manifest["parameters_schema"])
     Draft202012Validator.check_schema(manifest["result_schema"])
+
+
+def test_audit_event_rejects_secret_or_extra_fields() -> None:
+    schema = load_json(SCHEMAS / "audit-event.schema.json")
+    event = {
+        "contract_version": 1,
+        "event_id": "audit:01",
+        "timestamp": "2026-07-25T18:40:01Z",
+        "actor_id": "user:01",
+        "organization_id": "org:01",
+        "device_id": "cardputer:01",
+        "profile": "assistant",
+        "scope_id": None,
+        "tool_id": "camera.status",
+        "tool_version": 1,
+        "targets": ["camera:garage-01"],
+        "parameters_hash": f"sha256:{'a' * 64}",
+        "plan_hash": f"sha256:{'b' * 64}",
+        "policy_decision": "allow",
+        "reason_code": "AUTHORIZED",
+        "confirmation_method": None,
+        "result": "simulated",
+        "correlation_id": "correlation:01",
+        "private_stream_url": "rtsp://secret.invalid/private",
+    }
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(event)
 
 
 def test_tool_contract_cannot_expose_r3() -> None:

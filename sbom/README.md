@@ -1,7 +1,8 @@
 # Software bill of materials
 
 `python-development.cdx.json` is the CycloneDX 1.5 snapshot generated from the
-committed `uv.lock` for the foundation development environment.
+committed `uv.lock` for the Python development and simulated-service
+environment.
 
 Regenerate it with the exact approved uv version:
 

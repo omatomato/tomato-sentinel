@@ -45,10 +45,13 @@ their own build metadata when they have a release artifact.
 - Ruff for formatting and linting;
 - mypy in strict mode for static type checking;
 - pytest for tests;
-- `jsonschema` for validating language-neutral contract schemas.
+- `jsonschema` for validating language-neutral contract schemas and structured
+  input at Python trust boundaries.
 
-All are development dependencies pinned through the lockfile and registered in
-the upstream catalog.
+The quality tools are development dependencies. `jsonschema` is a runtime
+dependency because the orchestrator rejects external structured input against
+the source contracts before constructing domain values. All dependencies are
+pinned through the lockfile and registered in the upstream catalog.
 
 ### Contracts
 

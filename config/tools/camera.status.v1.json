@@ -1,0 +1,75 @@
+{
+  "contract_version": 1,
+  "tool_id": "camera.status",
+  "version": 1,
+  "category": "assistant",
+  "execution_location": "backend",
+  "interaction_modes": ["read_existing_state"],
+  "risk_class": "R0",
+  "required_profile": "assistant",
+  "authorization_kind": "resource_grant",
+  "required_roles": ["viewer"],
+  "required_capabilities": ["camera_status_query"],
+  "requires_confirmation": false,
+  "requires_physical_confirmation": false,
+  "timeout_seconds": 5,
+  "maximum_targets": 32,
+  "parameters_schema": {
+    "type": "object",
+    "maxProperties": 0,
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "type": "object",
+    "required": ["contract_version", "command_id", "status", "cameras"],
+    "properties": {
+      "contract_version": {
+        "const": 1
+      },
+      "command_id": {
+        "type": "string",
+        "pattern": "^command:[A-Za-z0-9][A-Za-z0-9._-]*$"
+      },
+      "status": {
+        "enum": ["simulated", "denied"]
+      },
+      "cameras": {
+        "type": "array",
+        "maxItems": 32,
+        "items": {
+          "type": "object",
+          "required": ["camera_id", "display_name", "status", "observed_at"],
+          "properties": {
+            "camera_id": {
+              "type": "string",
+              "pattern": "^camera:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "status": {
+              "enum": ["online", "offline", "unknown"]
+            },
+            "observed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "reason_code": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 96
+      },
+      "audit_event_id": {
+        "type": "string",
+        "pattern": "^audit:[A-Za-z0-9][A-Za-z0-9._-]*$"
+      }
+    },
+    "unevaluatedProperties": false
+  }
+}

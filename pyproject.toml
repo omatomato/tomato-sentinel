@@ -1,16 +1,18 @@
 [project]
 name = "tomato-sentinel-workspace"
 version = "0.0.0"
-description = "Foundation workspace for Tomato Sentinel"
+description = "Backend workspace for Tomato Sentinel"
 requires-python = ">=3.13,<3.15"
-dependencies = []
+dependencies = [
+  "jsonschema==4.26.0",
+]
 
 [dependency-groups]
 dev = [
-  "jsonschema==4.26.0",
   "mypy==2.3.0",
   "pytest==9.1.1",
   "ruff==0.15.22",
+  "types-jsonschema==4.26.0.20260518",
 ]
 
 [tool.uv]
@@ -19,13 +21,18 @@ required-version = "==0.11.29"
 
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
-pythonpath = ["packages/policy-engine/src"]
-testpaths = ["packages", "tests"]
+pythonpath = ["packages/policy-engine/src", "services/orchestrator/src"]
+testpaths = ["packages", "services", "tests"]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
-files = ["packages/policy-engine/src", "packages/policy-engine/tests"]
+files = [
+  "packages/policy-engine/src",
+  "packages/policy-engine/tests",
+  "services/orchestrator/src",
+  "services/orchestrator/tests",
+]
 warn_unreachable = true
 
 [tool.ruff]

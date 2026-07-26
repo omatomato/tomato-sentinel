@@ -12,11 +12,12 @@ backend infrastructure.
 
 ## Status
 
-Tomato Sentinel is in its foundation phase. The repository defines the product
-boundaries, architecture, authorization model, risk policy, privacy baseline
-and upstream-software governance. It also contains the first side-effect-free
-policy-engine core and JSON Schema contracts. No security tool, camera worker
-or production service is implemented yet.
+Tomato Sentinel is in its simulated vertical-slice phase. The repository
+defines the product boundaries, architecture, authorization model, risk policy,
+privacy baseline and upstream-software governance. It also contains the first
+policy-engine core, JSON Schema contracts and an R0 `camera.status` flow using
+fake cameras and idempotent audit. No camera worker, real network access,
+security tool or production service is implemented yet.
 
 ## Core principle
 
@@ -36,6 +37,7 @@ Natural-language output is never executed directly.
 - [Upstream-software policy](docs/governance/upstream-software.md)
 - [Development workflow](docs/operations/development-workflow.md)
 - [Language and toolchain decision](docs/decisions/ADR-0002-language-toolchain-and-contracts.md)
+- [Simulated orchestrator slice](services/orchestrator/README.md)
 - [Original specification snapshot](docs/product/product-specification-original.md)
 
 Repository-wide agent and contributor constraints are in [AGENTS.md](AGENTS.md).

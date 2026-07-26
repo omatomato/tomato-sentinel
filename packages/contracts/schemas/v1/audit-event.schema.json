@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/audit-event.schema.json",
+  "title": "Audit event",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "event_id",
+    "timestamp",
+    "actor_id",
+    "organization_id",
+    "device_id",
+    "profile",
+    "scope_id",
+    "tool_id",
+    "tool_version",
+    "targets",
+    "parameters_hash",
+    "plan_hash",
+    "policy_decision",
+    "reason_code",
+    "confirmation_method",
+    "result",
+    "correlation_id"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "event_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "organization_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "device_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "scope_id": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/typed_id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tool_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "tool_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1024,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/typed_id"
+      }
+    },
+    "parameters_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "plan_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "policy_decision": {
+      "enum": [
+        "allow",
+        "allow_with_confirmation",
+        "deny",
+        "require_scope",
+        "require_profile_change",
+        "require_physical_confirmation"
+      ]
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 96
+    },
+    "confirmation_method": {
+      "enum": ["operator", "physical", null]
+    },
+    "result": {
+      "enum": [
+        "planned",
+        "authorized",
+        "running",
+        "cancelled",
+        "completed",
+        "failed",
+        "denied",
+        "simulated"
+      ]
+    },
+    "correlation_id": {
+      "$ref": "#/$defs/typed_id"
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  },
+  "unevaluatedProperties": false
+}

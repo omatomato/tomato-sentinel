@@ -2,8 +2,8 @@
 
 ## Current phase
 
-The repository is in the foundation phase. Python and its initial quality
-toolchain are approved by ADR-0002. Application frameworks are not yet
+The repository is in the simulated vertical-slice phase. Python and its initial
+quality toolchain are approved by ADR-0002. Application frameworks are not yet
 approved. Do not introduce a framework incidentally while editing domain logic,
 documentation or contracts.
 

@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
   "version": 1,
-  "serialNumber": "urn:uuid:5629c961-a5d4-4a7a-9171-38c6e46e89b5",
+  "serialNumber": "urn:uuid:31bb6335-bf00-4809-9212-144c2ec90308",
   "metadata": {
-    "timestamp": "2026-07-26T00:45:18.901652635Z",
+    "timestamp": "2026-07-26T01:01:15.420377025Z",
     "tools": [
       {
         "vendor": "Astral Software Inc.",
@@ -159,7 +159,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "typing-extensions-19@4.16.0",
+      "bom-ref": "types-jsonschema-19@4.26.0.20260518",
+      "name": "types-jsonschema",
+      "version": "4.26.0.20260518",
+      "purl": "pkg:pypi/types-jsonschema@4.26.0.20260518"
+    },
+    {
+      "type": "library",
+      "bom-ref": "typing-extensions-20@4.16.0",
       "name": "typing-extensions",
       "version": "4.16.0",
       "purl": "pkg:pypi/typing-extensions@4.16.0"
@@ -203,7 +210,7 @@
         "librt-8@0.13.0",
         "mypy-extensions-10@1.1.0",
         "pathspec-12@1.1.1",
-        "typing-extensions-19@4.16.0"
+        "typing-extensions-20@4.16.0"
       ]
     },
     {
@@ -250,11 +257,18 @@
         "jsonschema-6@4.26.0",
         "mypy-9@2.3.0",
         "pytest-15@9.1.1",
-        "ruff-18@0.15.22"
+        "ruff-18@0.15.22",
+        "types-jsonschema-19@4.26.0.20260518"
       ]
     },
     {
-      "ref": "typing-extensions-19@4.16.0"
+      "ref": "types-jsonschema-19@4.26.0.20260518",
+      "dependsOn": [
+        "referencing-16@0.37.0"
+      ]
+    },
+    {
+      "ref": "typing-extensions-20@4.16.0"
     }
   ]
 }
