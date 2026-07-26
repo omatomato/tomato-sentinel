@@ -1,6 +1,6 @@
 # ADR-0008: Add a deterministic synthetic Spectra channel simulator
 
-- Status: Proposed — human review required
+- Status: Accepted
 - Date: 2026-07-26
 
 ## Context

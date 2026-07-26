@@ -41,10 +41,9 @@ Payloads are limited to 65,536 bits, noise to 50 percent and execution to the
 existing three cancellable engine steps. Version 1 remains registered so old
 plans keep their original schema and executor binding.
 
-The proposed decision and misuse analysis are in
+The accepted decision and misuse analysis are in
 `docs/decisions/ADR-0008-synthetic-spectra-channel-simulator.md` and
-`docs/security/spectra-simulation-threat-model.md`. Version 2 must not merge
-until the ADR receives human review.
+`docs/security/spectra-simulation-threat-model.md`.
 
 ## Execution flow
 
