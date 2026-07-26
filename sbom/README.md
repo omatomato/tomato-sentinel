@@ -15,3 +15,9 @@ uv export --locked --all-groups --preview-features sbom-export \
 The current uv SBOM exporter is marked experimental. Review generated changes,
 including transitive dependencies, before committing. Release SBOMs will be
 generated separately for each deployable artifact.
+
+`cardputer-firmware-poc.cdx.json` records the first compile-only original
+Cardputer artifact and its direct runtime dependencies. The binary itself is
+not committed or distributed. Its checksum, build environment and negative
+control are documented in
+`docs/hardware/original-cardputer-firmware-poc.md`.

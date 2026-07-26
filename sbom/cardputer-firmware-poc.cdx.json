@@ -1,0 +1,138 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:773a55a8-0a18-4d0e-93de-0f77a52711af",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-07-26T03:05:29Z",
+    "tools": [
+      {
+        "vendor": "Arduino",
+        "name": "Arduino CLI",
+        "version": "1.5.1",
+        "hashes": [
+          {
+            "alg": "SHA-256",
+            "content": "28a8e119c498a25607821c36cb2dc49e8463941b261a0d99091baa7bc692dd2b"
+          }
+        ]
+      }
+    ],
+    "component": {
+      "type": "firmware",
+      "bom-ref": "tomato-sentinel-cardputer-poc@0.1.0-poc",
+      "name": "Tomato Sentinel Cardputer PoC",
+      "version": "0.1.0-poc",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3193dd61f7f65ef434f28da41687752921e32bd9c61ad600c4c0aea9690a50b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "tomato-sentinel:board-profile",
+          "value": "board-profile:cardputer-original-v1"
+        },
+        {
+          "name": "tomato-sentinel:build-environment",
+          "value": "x86_64 Linux 6.18.5+kali-amd64"
+        },
+        {
+          "name": "tomato-sentinel:artifact",
+          "value": "TomatoSentinel.ino.bin"
+        },
+        {
+          "name": "tomato-sentinel:artifact-distribution",
+          "value": "not-distributed"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "framework",
+      "bom-ref": "arduino-esp32@3.3.10",
+      "group": "Espressif Systems",
+      "name": "Arduino core for ESP32",
+      "version": "3.3.10",
+      "purl": "pkg:github/espressif/arduino-esp32@0d1440d1be38ab530d274fe87ee88565fe167392",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "05cbb2cac185265b8b64f1dfa6982e4ae6d57db67f690a291f119a0b2b6aaab2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "m5unified@0.2.19",
+      "group": "M5Stack",
+      "name": "M5Unified",
+      "version": "0.2.19",
+      "purl": "pkg:github/m5stack/M5Unified@4fb444784c85791e0b0207701392b42be234b2e7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3e5cbaf1cc3e6c29ff7a0de8d84ad333e3f6ace785d27c2c3da683ba88622015"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "m5gfx@0.2.26",
+      "group": "M5Stack",
+      "name": "M5GFX",
+      "version": "0.2.26",
+      "purl": "pkg:github/m5stack/M5GFX@729297d6e3d657ddc1ec5189bac2f2ea68828085",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7e5361350ee2839e7788dc413846bf9445fed310d8e9e1a05137e1ffd0aa9fe3"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "tomato-sentinel-cardputer-poc@0.1.0-poc",
+      "dependsOn": [
+        "arduino-esp32@3.3.10",
+        "m5unified@0.2.19"
+      ]
+    },
+    {
+      "ref": "arduino-esp32@3.3.10"
+    },
+    {
+      "ref": "m5unified@0.2.19",
+      "dependsOn": [
+        "m5gfx@0.2.26"
+      ]
+    },
+    {
+      "ref": "m5gfx@0.2.26"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+board_manager:
+  additional_urls:
+    - https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+logging:
+  level: warn
+
+updater:
+  enable_notification: false
