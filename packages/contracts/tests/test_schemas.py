@@ -119,6 +119,67 @@ def test_command_rejects_untyped_target() -> None:
         ).validate(command)
 
 
+def test_voice_command_contract_accepts_bounded_capture() -> None:
+    schema = load_json(SCHEMAS / "voice-command.schema.json")
+    payload = {
+        "contract_version": 1,
+        "capture_id": "capture:01",
+        "recorded_at": "2026-07-25T18:40:00Z",
+        "completed_at": "2026-07-25T18:40:01Z",
+        "audio": {
+            "encoding": "opus",
+            "sample_rate": 16_000,
+            "channels": 1,
+            "duration_ms": 800,
+            "byte_length": 4,
+            "content_base64": "dGVzdA==",
+        },
+        "retention": "delete_after_processing",
+    }
+
+    Draft202012Validator(
+        schema,
+        format_checker=FormatChecker(),
+    ).validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("duration_ms", 15_001),
+        ("byte_length", 18_001),
+        ("content_base64", "not base64"),
+    ],
+)
+def test_voice_command_contract_rejects_unbounded_or_invalid_audio(
+    field: str,
+    value: int | str,
+) -> None:
+    schema = load_json(SCHEMAS / "voice-command.schema.json")
+    payload = {
+        "contract_version": 1,
+        "capture_id": "capture:01",
+        "recorded_at": "2026-07-25T18:40:00Z",
+        "completed_at": "2026-07-25T18:40:01Z",
+        "audio": {
+            "encoding": "opus",
+            "sample_rate": 16_000,
+            "channels": 1,
+            "duration_ms": 800,
+            "byte_length": 4,
+            "content_base64": "dGVzdA==",
+        },
+        "retention": "delete_after_processing",
+    }
+    payload["audio"][field] = value
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(payload)
+
+
 def test_policy_request_matches_contract() -> None:
     schema = load_json(SCHEMAS / "policy-request.schema.json")
     request = {

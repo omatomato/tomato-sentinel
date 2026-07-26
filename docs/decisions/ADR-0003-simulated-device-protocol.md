@@ -26,6 +26,10 @@ Maintain explicit declarative profiles for the original Cardputer and
 Cardputer-Adv. Profiles declare logical drivers, pins, trusted built-in
 capabilities and resource conflicts.
 
+The original Cardputer is the primary MVP hardware and physical-validation
+target. The Adv profile exists for explicit future compatibility and is not an
+MVP acceptance target.
+
 Capability reports are derived from a loaded, validated board profile. An
 incoming report is accepted only when it exactly matches the provisioned
 device profile.
@@ -79,10 +83,22 @@ transport verification, the backend resolves the exact job and invokes its
 existing cooperative cancellation path. Cancellation messages cannot choose
 arbitrary tools or parameters.
 
+### Simulated push-to-talk
+
+The simulator accepts one explicitly initiated capture at a time. It exposes a
+visible microphone indicator and bounds a capture to 15 seconds and 18,000
+encoded bytes. Cancellation or a limit violation clears the mutable buffer.
+Successful processing always clears it. Audio retention is not implemented in
+this simulator.
+
+The voice payload uses Opus metadata for the intended transport contract. The
+simulator does not encode or validate Opus, access a microphone, encrypt or
+transmit the payload, or perform speech-to-text.
+
 ## Consequences
 
 - Protocol and policy behavior can be tested without hardware or network I/O.
 - Board differences are explicit before C++ code exists.
 - The simulator must never be described as production-grade device identity.
-- Push-to-talk audio buffers, real key storage and firmware compilation remain
-  future work.
+- Real audio drivers and encoding, key storage, encrypted transport and
+  firmware compilation remain future work.

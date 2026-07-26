@@ -1,5 +1,7 @@
 """Canonical authenticated transport and replay protection for simulation."""
 
+import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -135,6 +137,8 @@ class DeviceMessageVerifier:
         self._validator.validate_payload(payload_type, payload)
         if payload_type == "capability_report":
             _verify_capability_report(payload, device)
+        elif payload_type == "voice_command":
+            _verify_voice_command(payload, device)
 
         message_id = cast(str, envelope["message_id"])
         device_message_ids = self._message_ids.setdefault(device_id, set())
@@ -226,6 +230,32 @@ def _verify_capability_report(
         or capabilities != device.board_profile.capabilities
     ):
         raise DeviceMessageRejectedError("CAPABILITY_REPORT_MISMATCH")
+
+
+def _verify_voice_command(
+    payload: Mapping[str, object],
+    device: ProvisionedDevice,
+) -> None:
+    if "microphone" not in device.board_profile.capabilities:
+        raise DeviceMessageRejectedError("MICROPHONE_CAPABILITY_REQUIRED")
+    audio = cast(Mapping[str, object], payload["audio"])
+    try:
+        content = base64.b64decode(
+            cast(str, audio["content_base64"]),
+            validate=True,
+        )
+    except (binascii.Error, ValueError) as error:
+        raise DeviceMessageRejectedError("AUDIO_CONTENT_INVALID") from error
+    if len(content) != audio["byte_length"]:
+        raise DeviceMessageRejectedError("AUDIO_LENGTH_MISMATCH")
+    recorded_at = datetime.fromisoformat(
+        cast(str, payload["recorded_at"]).replace("Z", "+00:00")
+    )
+    completed_at = datetime.fromisoformat(
+        cast(str, payload["completed_at"]).replace("Z", "+00:00")
+    )
+    if completed_at < recorded_at:
+        raise DeviceMessageRejectedError("AUDIO_TIMESTAMP_INVALID")
 
 
 def _require_aware(timestamp: datetime) -> None:

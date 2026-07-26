@@ -7,6 +7,10 @@ from typing import Any, cast
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 from tomato_sentinel_device_protocol import (
+    MAXIMUM_CAPTURE_DURATION_MS,
+    MAXIMUM_ENCODED_AUDIO_BYTES,
+    AudioCaptureLimitError,
+    AudioCaptureState,
     BoardProfile,
     CardputerSimulator,
     DeviceMessageRejectedError,
@@ -14,6 +18,7 @@ from tomato_sentinel_device_protocol import (
     DeviceProtocolValidator,
     DeviceRegistry,
     ProvisionedDevice,
+    PushToTalkRecorder,
     load_board_profile,
     sign_envelope,
 )
@@ -46,6 +51,7 @@ def validator() -> DeviceProtocolValidator:
             "capability_report": load_json(SCHEMAS / "capability-report.schema.json"),
             "profile_state": load_json(SCHEMAS / "profile-state.schema.json"),
             "text_command": load_json(SCHEMAS / "command.schema.json"),
+            "voice_command": load_json(SCHEMAS / "voice-command.schema.json"),
             "cancel_request": load_json(SCHEMAS / "cancel-request.schema.json"),
         },
     )
@@ -372,3 +378,158 @@ def test_text_command_must_match_visible_profile_before_signing() -> None:
 
     verified = verifier().verify(message, received_at=NOW)
     assert verified.payload_type == "text_command"
+
+
+def test_push_to_talk_requires_press_and_has_visible_state() -> None:
+    recorder = PushToTalkRecorder(board())
+
+    with pytest.raises(RuntimeError, match="not recording"):
+        recorder.append_encoded(b"not-background-audio", duration_ms=100)
+    recorder.press("capture:01", recorded_at=NOW)
+    recorder.append_encoded(b"simulated-opus-frame", duration_ms=800)
+    metadata = recorder.release(completed_at=NOW + timedelta(milliseconds=800))
+
+    assert recorder.indicator == "MIC: READY"
+    assert recorder.state is AudioCaptureState.READY
+    assert metadata.duration_ms == 800
+    assert metadata.byte_length == len(b"simulated-opus-frame")
+
+
+def test_push_to_talk_requires_trusted_microphone_capability() -> None:
+    profile = board()
+    without_microphone = BoardProfile(
+        board_profile_id=profile.board_profile_id,
+        hardware_revision=profile.hardware_revision,
+        controller=profile.controller,
+        capabilities=profile.capabilities - {"microphone"},
+        maximum_message_bytes=profile.maximum_message_bytes,
+        microphone_speaker_simultaneous=profile.microphone_speaker_simultaneous,
+    )
+
+    with pytest.raises(ValueError, match="trusted microphone"):
+        PushToTalkRecorder(without_microphone)
+
+
+@pytest.mark.parametrize(
+    ("chunk", "duration_ms"),
+    [
+        (b"x" * (MAXIMUM_ENCODED_AUDIO_BYTES + 1), 1),
+        (b"x", MAXIMUM_CAPTURE_DURATION_MS + 1),
+    ],
+)
+def test_push_to_talk_limit_violation_cancels_and_clears(
+    chunk: bytes,
+    duration_ms: int,
+) -> None:
+    recorder = PushToTalkRecorder(board())
+    recorder.press("capture:limit-01", recorded_at=NOW)
+
+    with pytest.raises(AudioCaptureLimitError):
+        recorder.append_encoded(chunk, duration_ms=duration_ms)
+
+    assert recorder.state is AudioCaptureState.CANCELLED
+    assert recorder.indicator == "MIC: LIMIT REACHED"
+    assert recorder.buffered_bytes == 0
+
+
+def test_push_to_talk_physical_cancel_clears_buffer() -> None:
+    recorder = PushToTalkRecorder(board())
+    recorder.press("capture:cancel-01", recorded_at=NOW)
+    recorder.append_encoded(b"personal-audio-fixture", duration_ms=500)
+
+    recorder.cancel()
+
+    assert recorder.state is AudioCaptureState.CANCELLED
+    assert recorder.indicator == "MIC: CANCELLED"
+    assert recorder.buffered_bytes == 0
+
+
+def test_maximum_push_to_talk_capture_fits_protocol_envelope() -> None:
+    device = simulator()
+    recorder = PushToTalkRecorder(device.board_profile)
+    recorder.press("capture:maximum-01", recorded_at=NOW)
+    recorder.append_encoded(
+        b"x" * MAXIMUM_ENCODED_AUDIO_BYTES,
+        duration_ms=MAXIMUM_CAPTURE_DURATION_MS,
+    )
+    recorder.release(completed_at=NOW + timedelta(seconds=15))
+
+    message = device.voice_command_message(
+        recorder,
+        sent_at=NOW + timedelta(seconds=16),
+        correlation_id="correlation:maximum-01",
+    )
+    verified = verifier().verify(
+        message,
+        received_at=NOW + timedelta(seconds=16),
+    )
+
+    assert verified.payload_type == "voice_command"
+    assert len(json.dumps(message).encode()) < 32_768
+
+
+def test_signed_voice_command_is_bounded_validated_and_deleted_after_success() -> None:
+    device = simulator()
+    recorder = PushToTalkRecorder(device.board_profile)
+    recorder.press("capture:voice-01", recorded_at=NOW)
+    recorder.append_encoded(b"simulated-opus-frame", duration_ms=800)
+    recorder.release(completed_at=NOW + timedelta(milliseconds=800))
+    message = device.voice_command_message(
+        recorder,
+        sent_at=NOW + timedelta(seconds=1),
+        correlation_id="correlation:voice-01",
+    )
+
+    verified = verifier().verify(
+        message,
+        received_at=NOW + timedelta(seconds=1),
+    )
+    audio = cast(Mapping[str, object], verified.payload["audio"])
+
+    assert verified.payload_type == "voice_command"
+    assert audio["byte_length"] == len(b"simulated-opus-frame")
+    assert len(json.dumps(message).encode()) < 32_768
+    recorder.acknowledge_processed("capture:voice-01", succeeded=True)
+    assert recorder.state is AudioCaptureState.IDLE
+    assert recorder.buffered_bytes == 0
+
+
+def test_failed_processing_keeps_capture_for_bounded_retry() -> None:
+    recorder = PushToTalkRecorder(board())
+    recorder.press("capture:retry-01", recorded_at=NOW)
+    recorder.append_encoded(b"simulated-opus-frame", duration_ms=800)
+    recorder.release(completed_at=NOW + timedelta(milliseconds=800))
+
+    recorder.acknowledge_processed("capture:retry-01", succeeded=False)
+
+    assert recorder.state is AudioCaptureState.READY
+    assert recorder.buffered_bytes == len(b"simulated-opus-frame")
+
+
+def test_voice_payload_with_forged_length_is_rejected() -> None:
+    device = simulator()
+    recorder = PushToTalkRecorder(device.board_profile)
+    recorder.press("capture:voice-01", recorded_at=NOW)
+    recorder.append_encoded(b"simulated-opus-frame", duration_ms=800)
+    recorder.release(completed_at=NOW + timedelta(milliseconds=800))
+    message = device.voice_command_message(
+        recorder,
+        sent_at=NOW + timedelta(seconds=1),
+        correlation_id="correlation:voice-01",
+    )
+    payload = dict(cast(Mapping[str, object], message["payload"]))
+    audio = dict(cast(Mapping[str, object], payload["audio"]))
+    audio["byte_length"] = cast(int, audio["byte_length"]) + 1
+    payload["audio"] = audio
+    unsigned = {key: value for key, value in message.items() if key != "authentication"}
+    unsigned["payload"] = payload
+    forged = sign_envelope(
+        unsigned,
+        key_id="device-key:01",
+        secret=SECRET,
+    )
+
+    with pytest.raises(DeviceMessageRejectedError) as error:
+        verifier().verify(forged, received_at=NOW + timedelta(seconds=1))
+
+    assert error.value.reason_code == "AUDIO_LENGTH_MISMATCH"

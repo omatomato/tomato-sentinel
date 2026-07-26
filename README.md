@@ -22,7 +22,9 @@ and a simulated Cardputer inbox. No real camera or network access, security
 tool or production service is implemented yet. A Cardputer protocol simulator
 now covers explicit original/Adv board profiles, authenticated envelopes,
 capability reports, replay protection, visible profiles and physical
-cancellation.
+cancellation. The original Cardputer is the primary MVP hardware target; Adv
+is retained only as an explicit future-compatibility profile. Bounded
+push-to-talk capture is simulated without microphone or network access.
 
 ## Core principle
 

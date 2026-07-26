@@ -19,6 +19,10 @@ cooperative cancellation and terminal audit.
 All execution is marked `simulated`. No frame image, snapshot, biometric
 identifier, credential or private stream URL is retained or emitted.
 
+The original M5Stack Cardputer is the primary MVP hardware target.
+Cardputer-Adv remains a compatibility profile but is not part of initial
+physical acceptance.
+
 ## Simulated vertical slice
 
 ```text
@@ -37,8 +41,9 @@ typed command fixture
 ```
 
 The initial slice uses text input, a fake camera adapter and a fake
-notification provider. Push-to-talk is connected only after this path is
-deterministic and tested.
+notification provider. A bounded host-side push-to-talk capture now produces a
+validated device message, but it does not yet access a microphone, use a
+network transport or perform transcription.
 
 ## Acceptance test
 

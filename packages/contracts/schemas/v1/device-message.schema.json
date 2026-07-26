@@ -22,7 +22,13 @@
     "correlation_id": {"$ref": "#/$defs/typed_id"},
     "sequence": {"type": "integer", "minimum": 1},
     "payload_type": {
-      "enum": ["capability_report", "profile_state", "text_command", "cancel_request"]
+      "enum": [
+        "capability_report",
+        "profile_state",
+        "text_command",
+        "voice_command",
+        "cancel_request"
+      ]
     },
     "payload": {"type": "object", "maxProperties": 32},
     "authentication": {

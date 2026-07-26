@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from tomato_sentinel_policy import Profile
 
+from .audio import PushToTalkRecorder
 from .models import BoardProfile, ProfileState
 from .protocol import sign_envelope
 
@@ -142,6 +143,20 @@ class CardputerSimulator:
         return self._message(
             "cancel_request",
             payload,
+            sent_at=sent_at,
+            correlation_id=correlation_id,
+        )
+
+    def voice_command_message(
+        self,
+        recorder: PushToTalkRecorder,
+        *,
+        sent_at: datetime,
+        correlation_id: str,
+    ) -> dict[str, object]:
+        return self._message(
+            "voice_command",
+            recorder.payload(),
             sent_at=sent_at,
             correlation_id=correlation_id,
         )
