@@ -1,0 +1,44 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# JavaScript and TypeScript
+node_modules/
+dist/
+coverage/
+
+# Firmware and native builds
+.pio/
+build/
+cmake-build-*/
+
+# Runtime data and evidence
+data/
+artifacts/
+captures/
+evidence/
+*.pcap
+*.pcapng
+
+# Local tooling
+.tools/
