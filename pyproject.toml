@@ -22,8 +22,12 @@ required-version = "==0.11.29"
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
 pythonpath = [
+  "apps/edge-lab-console/src",
   "packages/device-protocol/src",
+  "packages/experiment-engine/src",
   "packages/policy-engine/src",
+  "services/edge-agent/src",
+  "services/edge-agent/tests",
   "services/orchestrator/src",
 ]
 testpaths = ["packages", "services", "tests"]
@@ -32,10 +36,15 @@ testpaths = ["packages", "services", "tests"]
 python_version = "3.13"
 strict = true
 files = [
+  "apps/edge-lab-console/src",
+  "apps/edge-lab-console/tests",
   "packages/device-protocol/src",
   "packages/device-protocol/tests",
+  "packages/experiment-engine/src",
+  "packages/experiment-engine/tests",
   "packages/policy-engine/src",
   "packages/policy-engine/tests",
+  "services/edge-agent/src",
   "services/orchestrator/src",
   "services/orchestrator/tests",
 ]

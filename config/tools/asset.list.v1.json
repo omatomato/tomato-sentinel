@@ -1,0 +1,96 @@
+{
+  "contract_version": 1,
+  "tool_id": "asset.list",
+  "version": 1,
+  "category": "inventory",
+  "execution_location": "backend",
+  "interaction_modes": ["read_existing_state"],
+  "risk_class": "R0",
+  "required_profile": "inventory",
+  "authorization_kind": "resource_grant",
+  "required_roles": ["inventory_viewer"],
+  "required_capabilities": ["asset_inventory_query"],
+  "requires_confirmation": false,
+  "requires_physical_confirmation": false,
+  "timeout_seconds": 5,
+  "maximum_targets": 1,
+  "resource_limits": {
+    "maximum_results": 128
+  },
+  "idempotency_behavior": "command_id",
+  "audit_behavior": "terminal",
+  "cancellation_behavior": "not_applicable",
+  "outbound_network_policy": "none",
+  "parameters_schema": {
+    "type": "object",
+    "required": ["changes_only"],
+    "properties": {
+      "changes_only": {
+        "type": "boolean"
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "type": "object",
+    "required": [
+      "contract_version",
+      "command_id",
+      "status",
+      "assets",
+      "reason_code",
+      "audit_event_id"
+    ],
+    "properties": {
+      "contract_version": {"const": 1},
+      "command_id": {
+        "type": "string",
+        "pattern": "^command:[A-Za-z0-9][A-Za-z0-9._-]*$"
+      },
+      "status": {"enum": ["simulated", "denied"]},
+      "assets": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "object",
+          "required": [
+            "asset_id",
+            "display_name",
+            "asset_type",
+            "change_state",
+            "first_observed_at",
+            "last_observed_at"
+          ],
+          "properties": {
+            "asset_id": {
+              "type": "string",
+              "pattern": "^asset:[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "asset_type": {
+              "enum": ["camera", "edge_node", "network_device", "sensor"]
+            },
+            "change_state": {"enum": ["new", "changed", "known"]},
+            "first_observed_at": {"type": "string", "format": "date-time"},
+            "last_observed_at": {"type": "string", "format": "date-time"}
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "reason_code": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 96
+      },
+      "audit_event_id": {
+        "type": "string",
+        "pattern": "^audit:[A-Za-z0-9][A-Za-z0-9._-]*$"
+      }
+    },
+    "unevaluatedProperties": false
+  }
+}

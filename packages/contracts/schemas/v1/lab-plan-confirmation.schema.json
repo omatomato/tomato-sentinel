@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/lab-plan-confirmation.schema.json",
+  "title": "Signed Cardputer physical confirmation for one lab plan",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "confirmation_id",
+    "actor_id",
+    "organization_id",
+    "source_device_id",
+    "active_profile",
+    "scope_id",
+    "plan_hash",
+    "input_source",
+    "confirmed_at",
+    "correlation_id"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "confirmation_id": {"$ref": "#/$defs/typed_id"},
+    "actor_id": {"$ref": "#/$defs/typed_id"},
+    "organization_id": {"$ref": "#/$defs/typed_id"},
+    "source_device_id": {"$ref": "#/$defs/typed_id"},
+    "active_profile": {"const": "lab"},
+    "scope_id": {
+      "type": "string",
+      "pattern": "^scope:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "plan_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "input_source": {"const": "physical_confirm_key"},
+    "confirmed_at": {"type": "string", "format": "date-time"},
+    "correlation_id": {"$ref": "#/$defs/typed_id"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

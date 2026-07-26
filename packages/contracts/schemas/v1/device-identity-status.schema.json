@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/device-identity-status.schema.json",
+  "title": "Simulated device identity status",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "device_id",
+    "key_id",
+    "board_profile_id",
+    "firmware_version",
+    "identity_revision",
+    "state",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "device_id": {"$ref": "#/$defs/typed_id"},
+    "key_id": {"$ref": "#/$defs/typed_id"},
+    "board_profile_id": {"$ref": "#/$defs/typed_id"},
+    "firmware_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$",
+      "maxLength": 64
+    },
+    "identity_revision": {"type": "integer", "minimum": 1},
+    "state": {"enum": ["trusted", "revoked"]},
+    "execution_mode": {"const": "simulation"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

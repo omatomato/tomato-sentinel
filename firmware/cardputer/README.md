@@ -8,22 +8,38 @@ test profile. Cardputer-Adv remains an explicit compatibility profile so that
 its different audio, keyboard and IMU hardware cannot be mistaken for the
 original board. Adv compatibility is not an MVP hardware acceptance target.
 
-The first embedded proof of concept is in `app/TomatoSentinel`. It initializes
-only the original board's display and G0 button, keeps `PROFILE: ASSISTANT`
-visible and refuses to start if M5Unified detects another board.
+The embedded proof of concept is in `app/TomatoSentinel`. It uses the
+board-specific `m5stack_cardputer` target from the pinned Arduino-ESP32
+platform, initializes only the original board's display, G0 button and fixed
+74HC138 keyboard matrix, keeps `PROFILE: ASSISTANT` visible and uses explicit
+profiles from the original 2023 schematic. It does not link M5Unified,
+M5Cardputer or run generic board autodetection.
 
-Builds use the exact dependency versions in `sketch.yaml`. The original-board
-macro is intentionally separate from the generic ESP32-S3 FQBN:
+Keyboard input is limited to one unshifted key at a time and a 64-byte
+RAM-only draft. Multi-key states and modifiers are denied or ignored, Enter
+erases the draft without executing or sending it, and G0 has priority and
+erases it immediately. No keyboard content is written to logs. Audio, radio,
+storage, infrared, Grove and external modules remain uninitialized.
+
+Builds use the exact dependency versions and board options in `sketch.yaml`.
+The profile explicitly disables full-flash erase and selects a conservative
+115200 baud upload rate. Build only through the safe entry point, which
+requires both the original-board compile guard and the link-time NVS guard:
 
 ```sh
-arduino-cli \
-  --config-file firmware/cardputer/arduino-cli.yaml \
-  compile \
-  --profile original \
-  --build-property \
-  build.extra_flags=-DTOMATO_TARGET_CARDPUTER_ORIGINAL=1 \
-  firmware/cardputer/app/TomatoSentinel
+firmware/cardputer/build-safe.sh <temporary-build-directory>
 ```
 
-Omitting `build.extra_flags` must fail compilation. Compilation does not upload
-the image and is not evidence of behavior on physical hardware.
+Set `TOMATO_ARDUINO_CLI` only when the pinned Arduino CLI executable is not on
+`PATH`. Omitting the original-board marker must fail compilation. Omitting the
+link-time NVS guard produces an artifact that is not eligible for hardware
+validation. The script contains no upload command. Compilation is not evidence
+of behavior on physical hardware.
+
+Do not connect or flash physical hardware from this README alone. Follow
+`docs/hardware/original-cardputer-flashing-safety.md`; the first connection is
+read-only and an upload requires a separate, explicit confirmation.
+
+The keyboard candidate has not yet been written to hardware. Its design and
+remaining physical checks are in
+`docs/hardware/original-cardputer-keyboard-poc.md`.

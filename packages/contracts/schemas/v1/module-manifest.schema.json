@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/module-manifest.schema.json",
+  "title": "Tomato Sentinel research module manifest",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "module_id",
+    "version",
+    "display_name",
+    "category",
+    "execution_location",
+    "risk_class",
+    "required_profile",
+    "authorization_kind",
+    "required_roles",
+    "required_capabilities",
+    "required_hardware",
+    "requires_confirmation",
+    "requires_physical_confirmation",
+    "maximum_duration_seconds",
+    "maximum_samples",
+    "supports_cancel",
+    "executor_id",
+    "parameters_schema",
+    "result_schema"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "module_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "version": {"type": "integer", "minimum": 1},
+    "display_name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "category": {
+      "enum": ["spectra", "soc", "beacon", "privacy", "rf", "hardware_trust"]
+    },
+    "execution_location": {
+      "enum": ["cardputer", "edge", "backend", "external_service"]
+    },
+    "risk_class": {"enum": ["R0", "R1", "R2"]},
+    "required_profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "authorization_kind": {
+      "enum": ["none", "resource_grant", "operation_scope"]
+    },
+    "required_roles": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 64}
+    },
+    "required_capabilities": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "maxLength": 96
+      }
+    },
+    "required_hardware": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/typed_id"}
+    },
+    "requires_confirmation": {"type": "boolean"},
+    "requires_physical_confirmation": {"type": "boolean"},
+    "maximum_duration_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600
+    },
+    "maximum_samples": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "supports_cancel": {"type": "boolean"},
+    "executor_id": {
+      "type": "string",
+      "pattern": "^executor:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "parameters_schema": {"type": "object"},
+    "result_schema": {"type": "object"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"risk_class": {"enum": ["R1", "R2"]}},
+        "required": ["risk_class"]
+      },
+      "then": {"properties": {"supports_cancel": {"const": true}}}
+    },
+    {
+      "if": {
+        "properties": {"risk_class": {"const": "R2"}},
+        "required": ["risk_class"]
+      },
+      "then": {
+        "properties": {
+          "authorization_kind": {"const": "operation_scope"},
+          "requires_confirmation": {"const": true},
+          "requires_physical_confirmation": {"const": true}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"requires_physical_confirmation": {"const": true}},
+        "required": ["requires_physical_confirmation"]
+      },
+      "then": {"properties": {"requires_confirmation": {"const": true}}}
+    }
+  ],
+  "unevaluatedProperties": false
+}

@@ -57,6 +57,25 @@ Large upstream applications run as separate, least-privilege processes or
 containers behind an internal adapter. Credentials remain with the responsible
 adapter.
 
+### Future mobile camera source
+
+A phone camera may later be enrolled as an authorized, temporary video source.
+Reliable capture will probably require a companion mobile client; a foreground
+browser client may be evaluated for a narrower prototype. The implementation
+choice requires a separate threat model and ADR and is outside the first MVP.
+
+The phone device identity, camera resource enrollment and viewing grant remain
+separate. Installing or discovering the client grants none of them. Capture
+requires operating-system permission, an explicit operator start, a persistent
+on-device indicator, a finite session and immediate local cancellation. The
+backend must not silently activate a phone camera.
+
+Mobile frames and audio are sensitive data. Transport requires authenticated
+encryption and bounded destinations, local or edge inference is preferred, and
+continuous cloud recording remains disabled by default. Retention, provider
+transfer and evidence export require explicit classification and audit.
+Biometric identification remains outside the MVP.
+
 ## Trust boundaries
 
 ```text

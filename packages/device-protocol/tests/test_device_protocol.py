@@ -9,6 +9,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from tomato_sentinel_device_protocol import (
     MAXIMUM_CAPTURE_DURATION_MS,
     MAXIMUM_ENCODED_AUDIO_BYTES,
+    MAXIMUM_KEY_ROTATIONS_PER_DEVICE,
     AudioCaptureLimitError,
     AudioCaptureState,
     BoardProfile,
@@ -17,6 +18,7 @@ from tomato_sentinel_device_protocol import (
     DeviceMessageVerifier,
     DeviceProtocolValidator,
     DeviceRegistry,
+    DeviceRegistryChangeRejectedError,
     ProvisionedDevice,
     PushToTalkRecorder,
     load_board_profile,
@@ -82,10 +84,11 @@ def verifier(
             key_id="device-key:01",
             board_profile=board(),
             firmware_version="0.1.0-sim",
-            revoked=revoked,
         ),
         SECRET,
     )
+    if revoked:
+        registry.revoke("cardputer:01", expected_key_id="device-key:01")
     return DeviceMessageVerifier(validator(), registry)
 
 
@@ -257,6 +260,310 @@ def test_unknown_device_is_rejected() -> None:
         )
 
     assert error.value.reason_code == "DEVICE_UNKNOWN"
+
+
+def test_device_identity_status_is_non_secret_and_schema_valid() -> None:
+    registry = DeviceRegistry()
+    status = registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+
+    Draft202012Validator(
+        load_json(SCHEMAS / "device-identity-status.schema.json"),
+        format_checker=FormatChecker(),
+    ).validate(status.to_contract())
+
+    assert status.identity_revision == 1
+    assert status.state.value == "trusted"
+    assert "secret" not in status.to_contract()
+    assert SECRET.decode() not in repr(status)
+    assert registry.status("cardputer:unknown") is None
+
+
+def test_key_rotation_accepts_new_identity_and_rejects_old_key() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+    receiver = DeviceMessageVerifier(validator(), registry)
+    old_device = simulator()
+    receiver.verify(
+        old_device.profile_state_message(
+            sent_at=NOW,
+            correlation_id="correlation:before-rotation",
+        ),
+        received_at=NOW,
+    )
+    new_secret = b"replacement-simulation-key-material-32-bytes"
+
+    status = registry.rotate_key(
+        "cardputer:01",
+        expected_key_id="device-key:01",
+        new_key_id="device-key:02",
+        new_secret=new_secret,
+    )
+    new_device = CardputerSimulator(
+        device_id="cardputer:01",
+        key_id="device-key:02",
+        secret=new_secret,
+        board_profile=board(),
+        firmware_version="0.1.0-sim",
+        boot_id="boot:02",
+    )
+    accepted = receiver.verify(
+        new_device.profile_state_message(
+            sent_at=NOW,
+            correlation_id="correlation:after-rotation",
+        ),
+        received_at=NOW,
+    )
+    old_message = old_device.profile_state_message(
+        sent_at=NOW,
+        correlation_id="correlation:old-key",
+    )
+
+    with pytest.raises(DeviceMessageRejectedError) as error:
+        receiver.verify(old_message, received_at=NOW)
+
+    assert status.identity_revision == 2
+    assert accepted.sequence == 1
+    assert error.value.reason_code == "KEY_ID_MISMATCH"
+
+
+def test_key_rotation_retry_is_idempotent_but_key_collision_is_denied() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+    new_secret = b"replacement-simulation-key-material-32-bytes"
+    first = registry.rotate_key(
+        "cardputer:01",
+        expected_key_id="device-key:01",
+        new_key_id="device-key:02",
+        new_secret=new_secret,
+    )
+    retry = registry.rotate_key(
+        "cardputer:01",
+        expected_key_id="device-key:01",
+        new_key_id="device-key:02",
+        new_secret=new_secret,
+    )
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as error:
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id="device-key:01",
+            new_key_id="device-key:02",
+            new_secret=b"different-replacement-key-material-32-bytes",
+        )
+
+    assert retry == first
+    assert retry.identity_revision == 2
+    assert error.value.reason_code == "KEY_ID_COLLISION"
+
+
+def test_retired_key_id_cannot_be_reused() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+    registry.rotate_key(
+        "cardputer:01",
+        expected_key_id="device-key:01",
+        new_key_id="device-key:02",
+        new_secret=b"replacement-simulation-key-material-32-bytes",
+    )
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as error:
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id="device-key:02",
+            new_key_id="device-key:01",
+            new_secret=b"third-simulation-device-key-material-32-bytes",
+        )
+
+    assert error.value.reason_code == "KEY_ID_RETIRED"
+
+
+def test_secret_material_cannot_be_reused_across_devices_or_rotations() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as device_error:
+        registry.provision(
+            ProvisionedDevice(
+                device_id="cardputer:02",
+                key_id="device-key:02",
+                board_profile=board(),
+                firmware_version="0.1.0-sim",
+            ),
+            SECRET,
+        )
+    with pytest.raises(DeviceRegistryChangeRejectedError) as rotation_error:
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id="device-key:01",
+            new_key_id="device-key:02",
+            new_secret=SECRET,
+        )
+
+    assert device_error.value.reason_code == "SECRET_REUSED"
+    assert rotation_error.value.reason_code == "SECRET_UNCHANGED"
+
+
+def test_key_rotation_generations_are_bounded() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:000",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+    current_key_id = "device-key:000"
+    for generation in range(1, MAXIMUM_KEY_ROTATIONS_PER_DEVICE + 1):
+        new_key_id = f"device-key:{generation:03d}"
+        new_secret = f"simulation-secret-generation-{generation:03d}".encode()
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id=current_key_id,
+            new_key_id=new_key_id,
+            new_secret=new_secret,
+        )
+        current_key_id = new_key_id
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as error:
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id=current_key_id,
+            new_key_id="device-key:065",
+            new_secret=b"simulation-secret-generation-065",
+        )
+
+    assert error.value.reason_code == "KEY_ROTATION_LIMIT_REACHED"
+
+
+def test_revocation_is_idempotent_and_blocks_rotation_and_messages() -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+    first = registry.revoke("cardputer:01", expected_key_id="device-key:01")
+    retry = registry.revoke("cardputer:01", expected_key_id="device-key:01")
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as rotation_error:
+        registry.rotate_key(
+            "cardputer:01",
+            expected_key_id="device-key:01",
+            new_key_id="device-key:02",
+            new_secret=b"replacement-simulation-key-material-32-bytes",
+        )
+    with pytest.raises(DeviceMessageRejectedError) as message_error:
+        DeviceMessageVerifier(validator(), registry).verify(
+            simulator().profile_state_message(
+                sent_at=NOW,
+                correlation_id="correlation:revoked",
+            ),
+            received_at=NOW,
+        )
+
+    assert retry == first
+    assert retry.identity_revision == 2
+    assert retry.state.value == "revoked"
+    assert rotation_error.value.reason_code == "DEVICE_REVOKED"
+    assert message_error.value.reason_code == "DEVICE_REVOKED"
+
+
+@pytest.mark.parametrize(
+    ("operation", "reason_code"),
+    [
+        ("unknown", "DEVICE_UNKNOWN"),
+        ("stale_key", "KEY_ID_MISMATCH"),
+        ("unchanged_key", "KEY_ID_UNCHANGED"),
+        ("short_secret", "SECRET_TOO_SHORT"),
+        ("invalid_key", "KEY_ID_INVALID"),
+    ],
+)
+def test_identity_changes_fail_closed(operation: str, reason_code: str) -> None:
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=board(),
+            firmware_version="0.1.0-sim",
+        ),
+        SECRET,
+    )
+
+    with pytest.raises(DeviceRegistryChangeRejectedError) as error:
+        if operation == "unknown":
+            registry.revoke("cardputer:unknown", expected_key_id="device-key:01")
+        elif operation == "stale_key":
+            registry.revoke("cardputer:01", expected_key_id="device-key:stale")
+        elif operation == "unchanged_key":
+            registry.rotate_key(
+                "cardputer:01",
+                expected_key_id="device-key:01",
+                new_key_id="device-key:01",
+                new_secret=SECRET,
+            )
+        elif operation == "short_secret":
+            registry.rotate_key(
+                "cardputer:01",
+                expected_key_id="device-key:01",
+                new_key_id="device-key:02",
+                new_secret=b"too-short",
+            )
+        else:
+            registry.rotate_key(
+                "cardputer:01",
+                expected_key_id="device-key:01",
+                new_key_id="invalid key id",
+                new_secret=b"replacement-simulation-key-material-32-bytes",
+            )
+
+    assert error.value.reason_code == reason_code
 
 
 def test_unsupported_protocol_version_has_stable_rejection() -> None:

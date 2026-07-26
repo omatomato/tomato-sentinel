@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/lab-dashboard-view.schema.json",
+  "title": "Simulation lab dashboard capabilities view",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "view_type",
+    "edge_id",
+    "generated_at",
+    "execution_mode",
+    "tiles"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "view_type": {"const": "lab.modules"},
+    "edge_id": {
+      "type": "string",
+      "pattern": "^edge:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "execution_mode": {"const": "simulation"},
+    "tiles": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "module_id",
+          "module_version",
+          "display_name",
+          "risk_class",
+          "execution_mode"
+        ],
+        "properties": {
+          "module_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+            "maxLength": 128
+          },
+          "module_version": {"type": "integer", "minimum": 1},
+          "display_name": {"type": "string", "minLength": 1, "maxLength": 40},
+          "risk_class": {"enum": ["R0", "R1", "R2"]},
+          "execution_mode": {"const": "simulation"}
+        },
+        "unevaluatedProperties": false
+      }
+    }
+  },
+  "unevaluatedProperties": false
+}

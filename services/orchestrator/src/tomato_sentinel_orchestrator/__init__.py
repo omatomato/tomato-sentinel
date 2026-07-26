@@ -6,9 +6,36 @@ from .adapters import (
     InMemoryAuditSink,
     InMemoryCameraRepository,
 )
+from .asset_inventory import (
+    AssetChangeState,
+    AssetInventoryOutcome,
+    AssetInventoryService,
+    AssetRecord,
+    AssetRepository,
+    AssetSummary,
+    AssetType,
+    InMemoryAssetRepository,
+    asset_list_manifest,
+    asset_outcome_to_contract,
+)
 from .contracts import CommandRejectedError, ContractValidator
 from .detection import TemporalPersonConfirmer
-from .device_gateway import DeviceCancelGateway
+from .device_gateway import (
+    DeviceCancelGateway,
+    DeviceTextCommandGateway,
+    DeviceTextCommandRejectedError,
+)
+from .discovery import (
+    DiscoveryCandidate,
+    DiscoveryJob,
+    DiscoveryOutcome,
+    InMemoryPassiveDiscoverySource,
+    PassiveDiscoveryService,
+    PassiveDiscoverySource,
+    discovery_candidate_to_contract,
+    discovery_outcome_to_contract,
+    passive_discovery_manifest,
+)
 from .models import (
     AuditEvent,
     CameraRecord,
@@ -61,6 +88,13 @@ from .voice_gateway import (
 )
 
 __all__ = [
+    "AssetChangeState",
+    "AssetInventoryOutcome",
+    "AssetInventoryService",
+    "AssetRecord",
+    "AssetRepository",
+    "AssetSummary",
+    "AssetType",
     "AuditEvent",
     "AuditSink",
     "CameraAliasResolver",
@@ -73,6 +107,11 @@ __all__ = [
     "CommandRejectedError",
     "ContractValidator",
     "DeviceCancelGateway",
+    "DeviceTextCommandGateway",
+    "DeviceTextCommandRejectedError",
+    "DiscoveryCandidate",
+    "DiscoveryJob",
+    "DiscoveryOutcome",
     "EventSink",
     "ExactVoiceIntentExtractor",
     "ExecutionContext",
@@ -80,11 +119,13 @@ __all__ = [
     "FixtureSpeechToText",
     "FrameObservation",
     "FrameSource",
+    "InMemoryAssetRepository",
     "InMemoryAuditSink",
     "InMemoryCameraRepository",
     "InMemoryEventSink",
     "InMemoryFrameSource",
     "InMemoryNotificationSink",
+    "InMemoryPassiveDiscoverySource",
     "InvalidTransitionError",
     "JobState",
     "JobTransition",
@@ -94,18 +135,25 @@ __all__ = [
     "Notification",
     "NotificationChannel",
     "NotificationSink",
+    "PassiveDiscoveryService",
+    "PassiveDiscoverySource",
     "PersonDetectedEvent",
     "ProposedVoiceIntent",
     "TemporalPersonConfirmer",
     "TranscriptionContractValidator",
     "VoiceCommandRejectedError",
     "VoiceMonitoringGateway",
+    "asset_list_manifest",
+    "asset_outcome_to_contract",
     "audit_to_contract",
     "camera_monitor_manifest",
     "camera_status_manifest",
+    "discovery_candidate_to_contract",
+    "discovery_outcome_to_contract",
     "monitoring_outcome_to_contract",
     "notification_to_contract",
     "outcome_to_contract",
+    "passive_discovery_manifest",
     "person_event_to_contract",
     "transition_to_contract",
 ]

@@ -23,7 +23,12 @@ def test_schema_is_valid_draft_2020_12(schema_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "manifest_name",
-    ["camera.monitor.v1.json", "camera.status.v1.json"],
+    [
+        "asset.list.v1.json",
+        "camera.monitor.v1.json",
+        "camera.status.v1.json",
+        "network.passive_discovery.v1.json",
+    ],
 )
 def test_camera_manifest_matches_contract(manifest_name: str) -> None:
     schema = load_json(SCHEMAS / "tool-manifest.schema.json")
@@ -117,6 +122,47 @@ def test_command_rejects_untyped_target() -> None:
             schema,
             format_checker=FormatChecker(),
         ).validate(command)
+
+
+def test_device_identity_status_accepts_non_secret_simulation_receipt() -> None:
+    schema = load_json(SCHEMAS / "device-identity-status.schema.json")
+    status = {
+        "contract_version": 1,
+        "device_id": "cardputer:01",
+        "key_id": "device-key:02",
+        "board_profile_id": "board-profile:cardputer-original-v1",
+        "firmware_version": "0.2.2-poc",
+        "identity_revision": 2,
+        "state": "trusted",
+        "execution_mode": "simulation",
+    }
+
+    Draft202012Validator(
+        schema,
+        format_checker=FormatChecker(),
+    ).validate(status)
+
+
+@pytest.mark.parametrize("secret_field", ["secret", "token", "private_key"])
+def test_device_identity_status_rejects_secret_fields(secret_field: str) -> None:
+    schema = load_json(SCHEMAS / "device-identity-status.schema.json")
+    status = {
+        "contract_version": 1,
+        "device_id": "cardputer:01",
+        "key_id": "device-key:02",
+        "board_profile_id": "board-profile:cardputer-original-v1",
+        "firmware_version": "0.2.2-poc",
+        "identity_revision": 2,
+        "state": "trusted",
+        "execution_mode": "simulation",
+        secret_field: "must-not-cross-this-contract",
+    }
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(status)
 
 
 def test_voice_command_contract_accepts_bounded_capture() -> None:

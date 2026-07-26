@@ -463,14 +463,14 @@ projects:
       repository: M5Unified
       commit: 4fb444784c85791e0b0207701392b42be234b2e7
       release: 0.2.19
-    purpose: [cardputer_display, physical_cancel_button, board_detection]
+    purpose: [cardputer_library_reference]
     runtime:
       environment: cardputer_firmware
       architectures: [xtensa_esp32s3]
     integration:
-      mode: native_library
-      status: approved
-      adapter: firmware/cardputer/app/TomatoSentinel
+      mode: reference_only
+      status: rejected
+      adapter: null
     licensing:
       detected_license: MIT
       reviewed: true
@@ -478,24 +478,24 @@ projects:
       notice_required: true
     security:
       trust_level: untrusted_upstream
-      network_access: none
-      filesystem_access: device_peripherals_only
+      network_access: not_executed
+      filesystem_access: temporary_review_checkout_only
       privileged_container: false
-      vulnerability_reviewed_at: "2026-07-25"
-      review_notes: "No repository security advisories published. Only display, board detection and G0 button are enabled initially."
+      vulnerability_reviewed_at: "2026-07-26"
+      review_notes: "Rejected for the original-Cardputer proof of concept after exact-source review: begin() drives GPIO46 high as an output before board detection. GPIO46 is the original Cardputer microphone DATA line and an ESP32-S3 strapping pin. The library is not linked into the firmware."
     provenance:
       checksum: "sha256:3e5cbaf1cc3e6c29ff7a0de8d84ad333e3f6ace785d27c2c3da683ba88622015"
       signature_verified: false
       reviewed_commit: 4fb444784c85791e0b0207701392b42be234b2e7
     maintenance:
       last_upstream_activity: "2026-07-23"
-      last_local_review: "2026-07-25"
+      last_local_review: "2026-07-26"
       update_policy: manual
       owner: firmware
     compatibility:
-      cardputer: approved
+      cardputer: rejected
       backend: not_applicable
-      test_environment: compile_only_linux_amd64
+      test_environment: source_inspection_only
 
   - project_id: m5gfx
     display_name: M5GFX
@@ -523,15 +523,15 @@ projects:
       network_access: none
       filesystem_access: display_peripheral_only
       privileged_container: false
-      vulnerability_reviewed_at: "2026-07-25"
-      review_notes: "No repository security advisories published."
+      vulnerability_reviewed_at: "2026-07-26"
+      review_notes: "No repository security advisories published. Only fixed LovyanGFX display primitives are linked; the M5GFX automatic board detector and NVS cache are not called."
     provenance:
       checksum: "sha256:7e5361350ee2839e7788dc413846bf9445fed310d8e9e1a05137e1ffd0aa9fe3"
       signature_verified: false
       reviewed_commit: 729297d6e3d657ddc1ec5189bac2f2ea68828085
     maintenance:
       last_upstream_activity: "2026-07-23"
-      last_local_review: "2026-07-25"
+      last_local_review: "2026-07-26"
       update_policy: manual
       owner: firmware
     compatibility:
@@ -578,6 +578,174 @@ projects:
       owner: firmware
     compatibility:
       cardputer: rejected
+      backend: not_applicable
+      test_environment: source_inspection_only
+
+  - project_id: m5cardputer-userdemo-v0-9
+    display_name: M5Cardputer UserDemo V0.9
+    source:
+      provider: github
+      owner: m5stack
+      repository: M5Cardputer-UserDemo
+      commit: b0c678d5f19d9c2c6d7c362a1a478369994cadc6
+      release: V0.9
+    purpose: [original_cardputer_display_reference]
+    runtime:
+      environment: research_only
+      architectures: [xtensa_esp32s3]
+    integration:
+      mode: reference_only
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: not_executed
+      filesystem_access: temporary_review_checkout_only
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-26"
+      review_notes: "The exact V0.9 source was inspected only. Its explicit original-Cardputer ST7789 display configuration corroborates the official schematic. Its scripts, binaries, broad component tree and dependencies were not executed or integrated."
+    provenance:
+      checksum: null
+      signature_verified: false
+      reviewed_commit: b0c678d5f19d9c2c6d7c362a1a478369994cadc6
+    maintenance:
+      last_upstream_activity: "2023-12-13"
+      last_local_review: "2026-07-26"
+      update_policy: immutable_reference
+      owner: firmware
+    compatibility:
+      cardputer: reference_only
+      backend: not_applicable
+      test_environment: source_inspection_only
+
+  - project_id: bruce-firmware-1-16
+    display_name: Bruce Firmware 1.16
+    source:
+      provider: github
+      owner: BruceDevices
+      repository: firmware
+      commit: 59e83bfbd8a63a6b67ea23498e15c710a1ed9657
+      release: 1.16
+    purpose: [cardputer_ui_and_hardware_architecture_reference]
+    runtime:
+      environment: research_only
+      architectures: [xtensa_esp32s3]
+    integration:
+      mode: reference_only
+      status: rejected
+      adapter: null
+    licensing:
+      detected_license: AGPL-3.0-only
+      reviewed: true
+      compatible: false
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: not_executed
+      filesystem_access: temporary_review_checkout_only
+      privileged_container: false
+      vulnerability_reviewed_at: null
+      review_notes: "Exact source inspected without execution. Rejected: shared original/ADV startup drives GPIO5, scans I2C 1-126, initializes broad peripherals and exposes offensive functionality. Architecture and UI observations only; no code copied."
+    provenance:
+      checksum: null
+      signature_verified: false
+      reviewed_commit: 59e83bfbd8a63a6b67ea23498e15c710a1ed9657
+    maintenance:
+      last_upstream_activity: "2026-07-26"
+      last_local_review: "2026-07-26"
+      update_policy: immutable_reference
+      owner: firmware
+    compatibility:
+      cardputer: rejected_for_integration
+      backend: not_applicable
+      test_environment: source_inspection_only
+
+  - project_id: evil-m5project
+    display_name: Evil-M5Project
+    source:
+      provider: github
+      owner: 7h30th3r0n3
+      repository: Evil-M5Project
+      commit: 78f0289a8dbdd849242a35cd763410c360cb16e5
+      release: null
+    purpose: [cardputer_ui_and_hardware_architecture_reference]
+    runtime:
+      environment: research_only
+      architectures: [xtensa_esp32s3]
+    integration:
+      mode: reference_only
+      status: rejected
+      adapter: null
+    licensing:
+      detected_license: NOASSERTION
+      reviewed: true
+      compatible: false
+      notice_required: false
+    security:
+      trust_level: untrusted_upstream
+      network_access: not_executed
+      filesystem_access: temporary_review_checkout_only
+      privileged_container: false
+      vulnerability_reviewed_at: null
+      review_notes: "Exact source inspected without execution; no root license was present. Rejected: repeated broad M5 initialization, immediate Wi-Fi activity and R3 credential, deauthentication and arbitrary-HID features. UI observations only; no code copied."
+    provenance:
+      checksum: null
+      signature_verified: false
+      reviewed_commit: 78f0289a8dbdd849242a35cd763410c360cb16e5
+    maintenance:
+      last_upstream_activity: "2026-07-26"
+      last_local_review: "2026-07-26"
+      update_policy: immutable_reference
+      owner: firmware
+    compatibility:
+      cardputer: rejected_for_integration
+      backend: not_applicable
+      test_environment: source_inspection_only
+
+  - project_id: m5launcher-2-7-2
+    display_name: M5Launcher 2.7.2
+    source:
+      provider: github
+      owner: bmorcelli
+      repository: Launcher
+      commit: 01cf31d9fe1ff8c1ac774b344efb5b05d21016de
+      release: 2.7.2
+    purpose: [cardputer_ui_and_firmware_recovery_reference]
+    runtime:
+      environment: research_only
+      architectures: [xtensa_esp32s3]
+    integration:
+      mode: reference_only
+      status: rejected
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: not_executed
+      filesystem_access: temporary_review_checkout_only
+      privileged_container: false
+      vulnerability_reviewed_at: null
+      review_notes: "Exact source inspected without execution. Rejected for this proof: shared original/ADV startup probes I2C and drives GPIO5; application erases flash, writes partitions and changes the boot partition. Range-validation and recovery observations only; no code copied."
+    provenance:
+      checksum: null
+      signature_verified: false
+      reviewed_commit: 01cf31d9fe1ff8c1ac774b344efb5b05d21016de
+    maintenance:
+      last_upstream_activity: "2026-07-26"
+      last_local_review: "2026-07-26"
+      update_policy: immutable_reference
+      owner: firmware
+    compatibility:
+      cardputer: rejected_for_integration
       backend: not_applicable
       test_environment: source_inspection_only
 

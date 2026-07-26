@@ -83,7 +83,11 @@ def audit_event(
         organization_id=context.actor.organization_id,
         device_id=context.device.device_id,
         profile=command.profile,
-        scope_id=None,
+        scope_id=(
+            context.operation_scope.scope_id
+            if context.operation_scope is not None
+            else None
+        ),
         tool_id=tool_id,
         tool_version=tool_version,
         targets=command.targets,

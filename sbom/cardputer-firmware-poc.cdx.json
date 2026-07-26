@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:773a55a8-0a18-4d0e-93de-0f77a52711af",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-07-26T03:05:29Z",
+    "timestamp": "2026-07-26T04:36:05Z",
     "tools": [
       {
         "vendor": "Arduino",
@@ -20,13 +20,13 @@
     ],
     "component": {
       "type": "firmware",
-      "bom-ref": "tomato-sentinel-cardputer-poc@0.1.0-poc",
+      "bom-ref": "tomato-sentinel-cardputer-poc@0.1.4-poc",
       "name": "Tomato Sentinel Cardputer PoC",
-      "version": "0.1.0-poc",
+      "version": "0.1.4-poc",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3193dd61f7f65ef434f28da41687752921e32bd9c61ad600c4c0aea9690a50b"
+          "content": "8af992756dce03a77aa8cbec8e1364ab2e09d25fe3ffcc0fe44df6503bee3068"
         }
       ],
       "properties": [
@@ -41,6 +41,10 @@
         {
           "name": "tomato-sentinel:artifact",
           "value": "TomatoSentinel.ino.bin"
+        },
+        {
+          "name": "tomato-sentinel:fqbn",
+          "value": "esp32:esp32:m5stack_cardputer:FlashMode=qio,FlashSize=8M,USBMode=hwcdc,CDCOnBoot=cdc,PSRAM=disabled,PartitionScheme=default_8MB,UploadSpeed=115200,EraseFlash=none"
         },
         {
           "name": "tomato-sentinel:artifact-distribution",
@@ -73,27 +77,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "m5unified@0.2.19",
-      "group": "M5Stack",
-      "name": "M5Unified",
-      "version": "0.2.19",
-      "purl": "pkg:github/m5stack/M5Unified@4fb444784c85791e0b0207701392b42be234b2e7",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "3e5cbaf1cc3e6c29ff7a0de8d84ad333e3f6ace785d27c2c3da683ba88622015"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "m5gfx@0.2.26",
       "group": "M5Stack",
       "name": "M5GFX",
@@ -116,20 +99,14 @@
   ],
   "dependencies": [
     {
-      "ref": "tomato-sentinel-cardputer-poc@0.1.0-poc",
+      "ref": "tomato-sentinel-cardputer-poc@0.1.4-poc",
       "dependsOn": [
         "arduino-esp32@3.3.10",
-        "m5unified@0.2.19"
+        "m5gfx@0.2.26"
       ]
     },
     {
       "ref": "arduino-esp32@3.3.10"
-    },
-    {
-      "ref": "m5unified@0.2.19",
-      "dependsOn": [
-        "m5gfx@0.2.26"
-      ]
     },
     {
       "ref": "m5gfx@0.2.26"
