@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/policy-request.schema.json",
+  "title": "Policy request",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "actor",
+    "device",
+    "profile",
+    "tool_id",
+    "tool_version",
+    "targets",
+    "parameters",
+    "evaluated_at",
+    "plan_hash",
+    "resource_grant",
+    "operation_scope",
+    "confirmation"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "actor": {
+      "type": "object",
+      "required": ["actor_id", "organization_id", "roles"],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/typed_id"
+        },
+        "organization_id": {
+          "$ref": "#/$defs/typed_id"
+        },
+        "roles": {
+          "$ref": "#/$defs/string_set"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "device": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "organization_id",
+        "trust_state",
+        "capabilities"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/typed_id"
+        },
+        "organization_id": {
+          "$ref": "#/$defs/typed_id"
+        },
+        "trust_state": {
+          "enum": [
+            "unprovisioned",
+            "trusted",
+            "outdated",
+            "recovery",
+            "revoked",
+            "compromised"
+          ]
+        },
+        "capabilities": {
+          "$ref": "#/$defs/string_set"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "tool_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "tool_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1024,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/typed_id"
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "maxProperties": 32
+    },
+    "evaluated_at": {
+      "$ref": "#/$defs/date_time"
+    },
+    "plan_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-fA-F0-9]{64}$"
+    },
+    "resource_grant": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": ["organization_id", "resource_ids", "valid_until"],
+          "properties": {
+            "organization_id": {
+              "$ref": "#/$defs/typed_id"
+            },
+            "resource_ids": {
+              "$ref": "#/$defs/typed_id_set"
+            },
+            "valid_until": {
+              "$ref": "#/$defs/date_time"
+            }
+          },
+          "unevaluatedProperties": false
+        }
+      ]
+    },
+    "operation_scope": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "scope_id",
+            "organization_id",
+            "tool_ids",
+            "target_ids",
+            "valid_until"
+          ],
+          "properties": {
+            "scope_id": {
+              "$ref": "#/$defs/typed_id"
+            },
+            "organization_id": {
+              "$ref": "#/$defs/typed_id"
+            },
+            "tool_ids": {
+              "$ref": "#/$defs/string_set"
+            },
+            "target_ids": {
+              "$ref": "#/$defs/typed_id_set"
+            },
+            "valid_until": {
+              "$ref": "#/$defs/date_time"
+            }
+          },
+          "unevaluatedProperties": false
+        }
+      ]
+    },
+    "confirmation": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "actor_id",
+            "device_id",
+            "plan_hash",
+            "method",
+            "valid_until"
+          ],
+          "properties": {
+            "actor_id": {
+              "$ref": "#/$defs/typed_id"
+            },
+            "device_id": {
+              "$ref": "#/$defs/typed_id"
+            },
+            "plan_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-fA-F0-9]{64}$"
+            },
+            "method": {
+              "enum": ["operator", "physical"]
+            },
+            "valid_until": {
+              "$ref": "#/$defs/date_time"
+            }
+          },
+          "unevaluatedProperties": false
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "string_set": {
+      "type": "array",
+      "maxItems": 1024,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160
+      }
+    },
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "typed_id_set": {
+      "type": "array",
+      "maxItems": 1024,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/typed_id"
+      }
+    }
+  },
+  "unevaluatedProperties": false
+}

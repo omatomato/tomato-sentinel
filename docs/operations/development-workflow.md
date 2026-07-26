@@ -2,9 +2,10 @@
 
 ## Current phase
 
-The repository is in the foundation phase. Language versions, build systems
-and framework choices are not yet approved. Do not introduce a framework
-incidentally while editing documentation or contracts.
+The repository is in the foundation phase. Python and its initial quality
+toolchain are approved by ADR-0002. Application frameworks are not yet
+approved. Do not introduce a framework incidentally while editing domain logic,
+documentation or contracts.
 
 ## Change preparation
 
@@ -20,7 +21,7 @@ For every change, record:
 
 ## Validation
 
-Until automated tooling is introduced, documentation changes require:
+Documentation changes require:
 
 - Markdown link validation;
 - duplicate-heading and malformed-heading checks;
@@ -33,6 +34,16 @@ linter, type checker, unit tests, relevant integration tests and security
 regressions.
 
 External APIs and hardware are replaced by fakes in ordinary tests.
+
+Current Python checks:
+
+```text
+uv sync --locked --all-groups
+uv run --locked ruff format --check .
+uv run --locked ruff check .
+uv run --locked mypy
+uv run --locked pytest
+```
 
 ## Applicability
 

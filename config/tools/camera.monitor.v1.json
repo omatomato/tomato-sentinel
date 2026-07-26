@@ -1,0 +1,43 @@
+{
+  "contract_version": 1,
+  "tool_id": "camera.monitor",
+  "version": 1,
+  "category": "sentinel",
+  "execution_location": "edge",
+  "interaction_modes": ["passive_observation"],
+  "risk_class": "R1",
+  "required_profile": "sentinel",
+  "authorization_kind": "resource_grant",
+  "required_roles": ["operator"],
+  "required_capabilities": ["camera_monitoring"],
+  "requires_confirmation": false,
+  "requires_physical_confirmation": false,
+  "timeout_seconds": 330,
+  "maximum_duration_seconds": 300,
+  "maximum_targets": 1,
+  "parameters_schema": {
+    "type": "object",
+    "required": ["duration_seconds"],
+    "properties": {
+      "duration_seconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 300
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "type": "object",
+    "required": ["job_id", "status"],
+    "properties": {
+      "job_id": {
+        "type": "string"
+      },
+      "status": {
+        "enum": ["created", "running", "completed", "cancelled", "failed"]
+      }
+    },
+    "unevaluatedProperties": false
+  }
+}

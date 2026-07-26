@@ -1,2 +1,331 @@
 schema_version: 1
-projects: []
+
+projects:
+  - project_id: uv
+    display_name: uv
+    source:
+      provider: pypi
+      owner: astral-sh
+      repository: uv
+      commit: null
+      release: 0.11.29
+    purpose: [python_project_management, dependency_locking, sbom_generation]
+    runtime:
+      environment: development_and_ci
+      architectures: [amd64, arm64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: Apache-2.0
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: package_indexes_only
+      filesystem_access: workspace_and_cache
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+      review_notes: "Six published advisories reviewed; 0.11.29 is newer than all patched-version boundaries."
+    provenance:
+      checksum: locked_by_ci_action_version
+      signature_verified: false
+      reviewed_commit: null
+    maintenance:
+      last_upstream_activity: "2026-07-15"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: ruff
+    display_name: Ruff
+    source:
+      provider: pypi
+      owner: astral-sh
+      repository: ruff
+      commit: null
+      release: 0.15.22
+    purpose: [python_formatting, python_linting]
+    runtime:
+      environment: development_and_ci
+      architectures: [amd64, arm64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: none_at_runtime
+      filesystem_access: repository_read_write_for_formatting
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: "sha256:3f15175b1fb580126f58285a5dae6b2ea89000136d980c64499211f116b54809"
+      signature_verified: false
+      reviewed_commit: null
+    maintenance:
+      last_upstream_activity: "2026-07-16"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: mypy
+    display_name: mypy
+    source:
+      provider: pypi
+      owner: python
+      repository: mypy
+      commit: null
+      release: 2.3.0
+    purpose: [python_type_checking]
+    runtime:
+      environment: development_and_ci
+      architectures: [any]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: none_at_runtime
+      filesystem_access: repository_read_only
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: "sha256:465965d41cd9a2726694e983e8ce7113259327bec798115d1e1dfa2a52fb666e"
+      signature_verified: false
+      reviewed_commit: null
+    maintenance:
+      last_upstream_activity: "2026-07-13"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: pytest
+    display_name: pytest
+    source:
+      provider: pypi
+      owner: pytest-dev
+      repository: pytest
+      commit: null
+      release: 9.1.1
+    purpose: [python_testing]
+    runtime:
+      environment: development_and_ci
+      architectures: [any]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: none_at_runtime
+      filesystem_access: test_workspace
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: resolved_in_uv_lock
+      signature_verified: false
+      reviewed_commit: null
+    maintenance:
+      last_upstream_activity: "2026-06-19"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: python-jsonschema
+    display_name: jsonschema
+    source:
+      provider: pypi
+      owner: python-jsonschema
+      repository: jsonschema
+      commit: null
+      release: 4.26.0
+    purpose: [contract_schema_validation]
+    runtime:
+      environment: development_and_ci
+      architectures: [any]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: null
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: none_at_runtime
+      filesystem_access: contract_files_read_only
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: resolved_in_uv_lock
+      signature_verified: false
+      reviewed_commit: null
+    maintenance:
+      last_upstream_activity: "2026-01-07"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: github-actions-checkout
+    display_name: actions/checkout
+    source:
+      provider: github
+      owner: actions
+      repository: checkout
+      commit: de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      release: v6.0.2
+    purpose: [ci_source_checkout]
+    runtime:
+      environment: github_actions
+      architectures: [amd64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: .github/workflows/ci.yaml
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: github_only
+      filesystem_access: workspace
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: null
+      signature_verified: true
+      reviewed_commit: de0fac2e4500dabe0009e67214ff5f5447ce83dd
+    maintenance:
+      last_upstream_activity: "2026-01-09"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: github_actions
+
+  - project_id: github-actions-setup-python
+    display_name: actions/setup-python
+    source:
+      provider: github
+      owner: actions
+      repository: setup-python
+      commit: a309ff8b426b58ec0e2a45f0f869d46889d02405
+      release: v6.2.0
+    purpose: [ci_python_runtime]
+    runtime:
+      environment: github_actions
+      architectures: [amd64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: .github/workflows/ci.yaml
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: python_distribution_only
+      filesystem_access: tool_cache
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: null
+      signature_verified: true
+      reviewed_commit: a309ff8b426b58ec0e2a45f0f869d46889d02405
+    maintenance:
+      last_upstream_activity: "2026-01-22"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: github_actions
+
+  - project_id: github-actions-setup-uv
+    display_name: astral-sh/setup-uv
+    source:
+      provider: github
+      owner: astral-sh
+      repository: setup-uv
+      commit: 08807647e7069bb48b6ef5acd8ec9567f424441b
+      release: v8.1.0
+    purpose: [ci_uv_runtime]
+    runtime:
+      environment: github_actions
+      architectures: [amd64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: .github/workflows/ci.yaml
+    licensing:
+      detected_license: MIT
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: astral_releases_only
+      filesystem_access: tool_cache
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-25"
+    provenance:
+      checksum: null
+      signature_verified: true
+      reviewed_commit: 08807647e7069bb48b6ef5acd8ec9567f424441b
+    maintenance:
+      last_upstream_activity: "2026-04-16"
+      last_local_review: "2026-07-25"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: github_actions

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tool-manifest.schema.json",
+  "title": "Tool manifest",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "tool_id",
+    "version",
+    "category",
+    "execution_location",
+    "interaction_modes",
+    "risk_class",
+    "required_profile",
+    "authorization_kind",
+    "required_roles",
+    "required_capabilities",
+    "requires_confirmation",
+    "requires_physical_confirmation",
+    "timeout_seconds",
+    "maximum_targets",
+    "parameters_schema",
+    "result_schema"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "tool_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "category": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "execution_location": {
+      "enum": ["cardputer", "edge", "backend", "external_service"]
+    },
+    "interaction_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "read_existing_state",
+          "passive_observation",
+          "multicast_discovery",
+          "targeted_validation",
+          "state_change",
+          "radio_transmission",
+          "physical_output"
+        ]
+      }
+    },
+    "risk_class": {
+      "enum": ["R0", "R1", "R2"]
+    },
+    "required_profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
+    "authorization_kind": {
+      "enum": ["none", "resource_grant", "operation_scope"]
+    },
+    "required_roles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 96
+      }
+    },
+    "requires_confirmation": {
+      "type": "boolean"
+    },
+    "requires_physical_confirmation": {
+      "type": "boolean"
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    },
+    "maximum_duration_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    },
+    "maximum_targets": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024
+    },
+    "parameters_schema": {
+      "type": "object"
+    },
+    "result_schema": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "requires_physical_confirmation": {
+            "const": true
+          }
+        },
+        "required": ["requires_physical_confirmation"]
+      },
+      "then": {
+        "properties": {
+          "requires_confirmation": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

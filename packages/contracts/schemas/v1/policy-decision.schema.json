@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/policy-decision.schema.json",
+  "title": "Policy decision",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "decision",
+    "reason_code",
+    "obligations"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "allow_with_confirmation",
+        "deny",
+        "require_scope",
+        "require_profile_change",
+        "require_physical_confirmation"
+      ]
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 128
+    },
+    "obligations": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["type", "parameters"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "maxLength": 64
+          },
+          "parameters": {
+            "type": "object",
+            "maxProperties": 32
+          }
+        },
+        "unevaluatedProperties": false
+      }
+    }
+  },
+  "unevaluatedProperties": false
+}

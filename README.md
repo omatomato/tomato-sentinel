@@ -12,10 +12,11 @@ backend infrastructure.
 
 ## Status
 
-Tomato Sentinel is in its foundation phase. The repository currently defines
-the product boundaries, architecture, authorization model, risk policy,
-privacy baseline and upstream-software governance. No security tool, camera
-worker or production service is implemented yet.
+Tomato Sentinel is in its foundation phase. The repository defines the product
+boundaries, architecture, authorization model, risk policy, privacy baseline
+and upstream-software governance. It also contains the first side-effect-free
+policy-engine core and JSON Schema contracts. No security tool, camera worker
+or production service is implemented yet.
 
 ## Core principle
 
@@ -34,6 +35,7 @@ Natural-language output is never executed directly.
 - [Privacy and data governance](docs/privacy/data-governance.md)
 - [Upstream-software policy](docs/governance/upstream-software.md)
 - [Development workflow](docs/operations/development-workflow.md)
+- [Language and toolchain decision](docs/decisions/ADR-0002-language-toolchain-and-contracts.md)
 - [Original specification snapshot](docs/product/product-specification-original.md)
 
 Repository-wide agent and contributor constraints are in [AGENTS.md](AGENTS.md).
@@ -58,6 +60,23 @@ tests/                    integration, end-to-end, security and simulation
 
 Directories will be introduced with their first owned artifact rather than as
 empty placeholders.
+
+## Development
+
+The initial backend workspace supports Python 3.13 and 3.14 and uses uv
+`0.11.29`.
+
+```text
+uv sync --locked --all-groups
+uv run --locked ruff format --check .
+uv run --locked ruff check .
+uv run --locked mypy
+uv run --locked pytest
+```
+
+Dependencies and CI actions are pinned and registered in
+`config/upstream/software-catalog.yaml`. The current Python development SBOM is
+stored in `sbom/python-development.cdx.json`.
 
 ## Security
 
