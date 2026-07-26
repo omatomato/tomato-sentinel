@@ -6,11 +6,21 @@ from typing import Any
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
+from tomato_sentinel_device_protocol import (
+    CardputerSimulator,
+    DeviceMessageRejectedError,
+    DeviceMessageVerifier,
+    DeviceProtocolValidator,
+    DeviceRegistry,
+    ProvisionedDevice,
+    load_board_profile,
+)
 from tomato_sentinel_orchestrator import (
     CameraRecord,
     CameraState,
     CommandRejectedError,
     ContractValidator,
+    DeviceCancelGateway,
     ExecutionContext,
     ExecutionStatus,
     FrameObservation,
@@ -577,3 +587,69 @@ def test_monitor_domain_manifest_matches_registered_contract() -> None:
         "maximum_frames": MAXIMUM_FRAMES,
         "maximum_events": MAXIMUM_EVENTS,
     }
+
+
+def test_signed_physical_cancel_reaches_exact_running_job_once() -> None:
+    service, _frames, _events, _push, _inbox, audit = build_service()
+    started = service.start(command(), context(), evaluated_at=NOW)
+    board_schema = load_json(SCHEMAS / "board-profile.schema.json")
+    profile = load_board_profile(
+        load_json(
+            ROOT
+            / "firmware"
+            / "cardputer"
+            / "board_profiles"
+            / "cardputer.original.v1.json"
+        ),
+        board_schema,
+    )
+    secret = b"simulation-device-key-material-32-bytes"
+    device = CardputerSimulator(
+        device_id="cardputer:01",
+        key_id="device-key:01",
+        secret=secret,
+        board_profile=profile,
+        firmware_version="0.1.0-sim",
+        boot_id="boot:cancel-01",
+    )
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=profile,
+            firmware_version="0.1.0-sim",
+        ),
+        secret,
+    )
+    protocol_validator = DeviceProtocolValidator(
+        envelope_schema=load_json(SCHEMAS / "device-message.schema.json"),
+        payload_schemas={
+            "cancel_request": load_json(SCHEMAS / "cancel-request.schema.json")
+        },
+    )
+    gateway = DeviceCancelGateway(DeviceMessageVerifier(protocol_validator, registry))
+    envelope = device.physical_cancel_message(
+        started.job_id or "",
+        sent_at=NOW + timedelta(seconds=1),
+        correlation_id="correlation:cancel-01",
+    )
+
+    cancelled = gateway.handle(
+        envelope,
+        context(),
+        service,
+        received_at=NOW + timedelta(seconds=1),
+    )
+
+    assert cancelled.status is JobState.CANCELLED
+    assert audit.events[0].result is ExecutionStatus.CANCELLED
+    with pytest.raises(DeviceMessageRejectedError) as error:
+        gateway.handle(
+            envelope,
+            context(),
+            service,
+            received_at=NOW + timedelta(seconds=2),
+        )
+    assert error.value.reason_code == "MESSAGE_ID_REPLAYED"
+    assert len(audit.events) == 1

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/capability-report.schema.json",
+  "title": "Trusted device capability report",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "device_id",
+    "board_profile_id",
+    "firmware_version",
+    "generated_at",
+    "capabilities"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "device_id": {"$ref": "#/$defs/typed_id"},
+    "board_profile_id": {"$ref": "#/$defs/typed_id"},
+    "firmware_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[A-Za-z0-9.-]+)?$",
+      "maxLength": 64
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "capabilities": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "maxLength": 96}
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

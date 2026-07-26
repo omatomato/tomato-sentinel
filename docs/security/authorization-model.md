@@ -22,6 +22,9 @@ Roles are not device operating profiles.
 A profile is the visible operating mode of a Cardputer or operator session:
 `assistant`, `sentinel`, `inventory`, `lab` or `recovery`.
 
+A signed device profile state is an input to authorization, not permission by
+itself. It cannot create a resource grant, operation scope, role or capability.
+
 ### Resource grant
 
 A resource grant authorizes ordinary access to registered resources such as a

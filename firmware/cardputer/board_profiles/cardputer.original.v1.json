@@ -1,0 +1,72 @@
+{
+  "contract_version": 1,
+  "board_profile_id": "board-profile:cardputer-original-v1",
+  "product_family": "cardputer",
+  "hardware_revision": "original",
+  "controller": "ESP32-S3FN8",
+  "interfaces": {
+    "audio": {
+      "input_driver": "SPM1423",
+      "output_driver": "NS4168",
+      "pins": {
+        "mic_data": 46,
+        "mic_clock": 43,
+        "speaker_bclk": 41,
+        "speaker_data": 42,
+        "speaker_lrclk": 43
+      }
+    },
+    "keyboard": {
+      "driver": "74HC138_MATRIX",
+      "pins": {
+        "selector_a0": 8,
+        "selector_a1": 9,
+        "selector_a2": 11
+      }
+    },
+    "display": {
+      "driver": "ST7789V2",
+      "width": 240,
+      "height": 135,
+      "pins": {
+        "backlight": 38,
+        "reset": 33,
+        "command": 34,
+        "data": 35,
+        "clock": 36,
+        "chip_select": 37
+      }
+    },
+    "storage": {
+      "micro_sd": true,
+      "pins": {
+        "chip_select": 12,
+        "mosi": 14,
+        "clock": 40,
+        "miso": 39
+      }
+    },
+    "infrared": {
+      "tx_pin": 44
+    },
+    "imu": {
+      "driver": null,
+      "pins": {}
+    }
+  },
+  "capabilities": {
+    "microphone": true,
+    "speaker": true,
+    "keyboard": true,
+    "display": true,
+    "micro_sd": true,
+    "wifi": true,
+    "ble": true,
+    "infrared_tx": true,
+    "imu": false
+  },
+  "constraints": {
+    "maximum_message_bytes": 32768,
+    "microphone_speaker_simultaneous": false
+  }
+}

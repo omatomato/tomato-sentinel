@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/device-message.schema.json",
+  "title": "Authenticated device message envelope",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "message_id",
+    "device_id",
+    "sent_at",
+    "correlation_id",
+    "sequence",
+    "payload_type",
+    "payload",
+    "authentication"
+  ],
+  "properties": {
+    "protocol_version": {"const": 1},
+    "message_id": {"$ref": "#/$defs/typed_id"},
+    "device_id": {"$ref": "#/$defs/typed_id"},
+    "sent_at": {"type": "string", "format": "date-time"},
+    "correlation_id": {"$ref": "#/$defs/typed_id"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "payload_type": {
+      "enum": ["capability_report", "profile_state", "text_command", "cancel_request"]
+    },
+    "payload": {"type": "object", "maxProperties": 32},
+    "authentication": {
+      "type": "object",
+      "required": ["algorithm", "key_id", "tag"],
+      "properties": {
+        "algorithm": {"const": "simulation_hmac_sha256"},
+        "key_id": {"$ref": "#/$defs/typed_id"},
+        "tag": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "unevaluatedProperties": false
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

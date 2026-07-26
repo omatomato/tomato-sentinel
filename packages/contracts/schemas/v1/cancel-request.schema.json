@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/cancel-request.schema.json",
+  "title": "Physical cancellation request",
+  "type": "object",
+  "required": ["contract_version", "job_id", "input_source", "requested_at"],
+  "properties": {
+    "contract_version": {"const": 1},
+    "job_id": {
+      "type": "string",
+      "pattern": "^job:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "input_source": {"const": "physical_cancel_key"},
+    "requested_at": {"type": "string", "format": "date-time"}
+  },
+  "unevaluatedProperties": false
+}

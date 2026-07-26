@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/profile-state.schema.json",
+  "title": "Visible Cardputer operating profile",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "active_profile",
+    "indicator",
+    "operator_id",
+    "scope_id",
+    "expires_at"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "active_profile": {"enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]},
+    "indicator": {"type": "string", "pattern": "^PROFILE: (ASSISTANT|SENTINEL|INVENTORY|LAB|RECOVERY)$"},
+    "operator_id": {
+      "oneOf": [{"$ref": "#/$defs/typed_id"}, {"type": "null"}]
+    },
+    "scope_id": {
+      "oneOf": [{"$ref": "#/$defs/typed_id"}, {"type": "null"}]
+    },
+    "expires_at": {
+      "oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"active_profile": {"const": "lab"}},
+        "required": ["active_profile"]
+      },
+      "then": {
+        "properties": {
+          "operator_id": {"$ref": "#/$defs/typed_id"},
+          "scope_id": {"$ref": "#/$defs/typed_id"},
+          "expires_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "else": {
+        "properties": {
+          "operator_id": {"type": "null"},
+          "scope_id": {"type": "null"},
+          "expires_at": {"type": "null"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

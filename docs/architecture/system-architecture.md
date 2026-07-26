@@ -90,6 +90,9 @@ All messages include a protocol version, message ID, timestamp, correlation ID,
 producer identity and payload type. Replay windows and clock-skew handling must
 be explicit.
 
+ADR-0003 defines the protocol-v1 simulator and its deliberately non-production
+HMAC identity boundary.
+
 ## Internal adapter contract
 
 Each upstream adapter exposes equivalent operations:

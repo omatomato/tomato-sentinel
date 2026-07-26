@@ -8,6 +8,7 @@ from .adapters import (
 )
 from .contracts import CommandRejectedError, ContractValidator
 from .detection import TemporalPersonConfirmer
+from .device_gateway import DeviceCancelGateway
 from .models import (
     AuditEvent,
     CameraRecord,
@@ -61,6 +62,7 @@ __all__ = [
     "CommandOutcome",
     "CommandRejectedError",
     "ContractValidator",
+    "DeviceCancelGateway",
     "EventSink",
     "ExecutionContext",
     "ExecutionStatus",

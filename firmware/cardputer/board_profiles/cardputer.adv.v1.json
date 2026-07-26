@@ -1,0 +1,76 @@
+{
+  "contract_version": 1,
+  "board_profile_id": "board-profile:cardputer-adv-v1",
+  "product_family": "cardputer",
+  "hardware_revision": "adv",
+  "controller": "ESP32-S3FN8",
+  "interfaces": {
+    "audio": {
+      "input_driver": "ES8311",
+      "output_driver": "NS4150B",
+      "pins": {
+        "i2c_sda": 8,
+        "i2c_scl": 9,
+        "serial_clock": 41,
+        "adc_data": 46,
+        "lr_clock": 43,
+        "dac_data": 42
+      }
+    },
+    "keyboard": {
+      "driver": "TCA8418",
+      "pins": {
+        "i2c_sda": 8,
+        "i2c_scl": 9,
+        "interrupt": 11
+      }
+    },
+    "display": {
+      "driver": "ST7789V2",
+      "width": 240,
+      "height": 135,
+      "pins": {
+        "backlight": 38,
+        "reset": 33,
+        "command": 34,
+        "data": 35,
+        "clock": 36,
+        "chip_select": 37
+      }
+    },
+    "storage": {
+      "micro_sd": true,
+      "pins": {
+        "chip_select": 12,
+        "mosi": 14,
+        "clock": 40,
+        "miso": 39
+      }
+    },
+    "infrared": {
+      "tx_pin": 44
+    },
+    "imu": {
+      "driver": "BMI270",
+      "pins": {
+        "i2c_sda": 8,
+        "i2c_scl": 9
+      }
+    }
+  },
+  "capabilities": {
+    "microphone": true,
+    "speaker": true,
+    "keyboard": true,
+    "display": true,
+    "micro_sd": true,
+    "wifi": true,
+    "ble": true,
+    "infrared_tx": true,
+    "imu": true
+  },
+  "constraints": {
+    "maximum_message_bytes": 32768,
+    "microphone_speaker_simultaneous": false
+  }
+}

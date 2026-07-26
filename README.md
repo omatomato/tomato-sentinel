@@ -19,7 +19,10 @@ policy-engine core, JSON Schema contracts, an R0 `camera.status` flow and the
 complete simulated R1 `camera.monitor` MVP. The R1 path uses bounded fake
 frames, temporal person confirmation, cancellation, idempotent notification
 and a simulated Cardputer inbox. No real camera or network access, security
-tool or production service is implemented yet.
+tool or production service is implemented yet. A Cardputer protocol simulator
+now covers explicit original/Adv board profiles, authenticated envelopes,
+capability reports, replay protection, visible profiles and physical
+cancellation.
 
 ## Core principle
 
@@ -39,6 +42,7 @@ Natural-language output is never executed directly.
 - [Upstream-software policy](docs/governance/upstream-software.md)
 - [Development workflow](docs/operations/development-workflow.md)
 - [Language and toolchain decision](docs/decisions/ADR-0002-language-toolchain-and-contracts.md)
+- [Simulated device protocol decision](docs/decisions/ADR-0003-simulated-device-protocol.md)
 - [Simulated orchestrator slice](services/orchestrator/README.md)
 - [Original specification snapshot](docs/product/product-specification-original.md)
 

@@ -21,13 +21,19 @@ required-version = "==0.11.29"
 
 [tool.pytest.ini_options]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
-pythonpath = ["packages/policy-engine/src", "services/orchestrator/src"]
+pythonpath = [
+  "packages/device-protocol/src",
+  "packages/policy-engine/src",
+  "services/orchestrator/src",
+]
 testpaths = ["packages", "services", "tests"]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
 files = [
+  "packages/device-protocol/src",
+  "packages/device-protocol/tests",
   "packages/policy-engine/src",
   "packages/policy-engine/tests",
   "services/orchestrator/src",

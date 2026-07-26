@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/board-profile.schema.json",
+  "title": "Trusted Cardputer board profile",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "board_profile_id",
+    "product_family",
+    "hardware_revision",
+    "controller",
+    "interfaces",
+    "capabilities",
+    "constraints"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "board_profile_id": {"$ref": "#/$defs/typed_id"},
+    "product_family": {"const": "cardputer"},
+    "hardware_revision": {"enum": ["original", "adv"]},
+    "controller": {"const": "ESP32-S3FN8"},
+    "interfaces": {
+      "type": "object",
+      "required": ["audio", "keyboard", "display", "storage", "infrared", "imu"],
+      "properties": {
+        "audio": {
+          "type": "object",
+          "required": ["input_driver", "output_driver", "pins"],
+          "properties": {
+            "input_driver": {"enum": ["SPM1423", "ES8311"]},
+            "output_driver": {"enum": ["NS4168", "NS4150B"]},
+            "pins": {"$ref": "#/$defs/pins"}
+          },
+          "unevaluatedProperties": false
+        },
+        "keyboard": {
+          "type": "object",
+          "required": ["driver", "pins"],
+          "properties": {
+            "driver": {"enum": ["74HC138_MATRIX", "TCA8418"]},
+            "pins": {"$ref": "#/$defs/pins"}
+          },
+          "unevaluatedProperties": false
+        },
+        "display": {
+          "type": "object",
+          "required": ["driver", "width", "height", "pins"],
+          "properties": {
+            "driver": {"const": "ST7789V2"},
+            "width": {"const": 240},
+            "height": {"const": 135},
+            "pins": {"$ref": "#/$defs/pins"}
+          },
+          "unevaluatedProperties": false
+        },
+        "storage": {
+          "type": "object",
+          "required": ["micro_sd", "pins"],
+          "properties": {
+            "micro_sd": {"const": true},
+            "pins": {"$ref": "#/$defs/pins"}
+          },
+          "unevaluatedProperties": false
+        },
+        "infrared": {
+          "type": "object",
+          "required": ["tx_pin"],
+          "properties": {"tx_pin": {"type": "integer", "minimum": 0, "maximum": 48}},
+          "unevaluatedProperties": false
+        },
+        "imu": {
+          "type": "object",
+          "required": ["driver", "pins"],
+          "properties": {
+            "driver": {"enum": ["BMI270", null]},
+            "pins": {"$ref": "#/$defs/pins"}
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "microphone",
+        "speaker",
+        "keyboard",
+        "display",
+        "micro_sd",
+        "wifi",
+        "ble",
+        "infrared_tx",
+        "imu"
+      ],
+      "additionalProperties": {"type": "boolean"},
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"}
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["maximum_message_bytes", "microphone_speaker_simultaneous"],
+      "properties": {
+        "maximum_message_bytes": {"const": 32768},
+        "microphone_speaker_simultaneous": {"type": "boolean"}
+      },
+      "unevaluatedProperties": false
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "pins": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0, "maximum": 48},
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"}
+    }
+  },
+  "unevaluatedProperties": false
+}
