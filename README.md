@@ -33,15 +33,19 @@ network discovery. Bounded R1 passive discovery is now simulated with exact
 network scope, candidate limits and cancellation, but opens no socket and
 cannot enroll a discovered device. A simulation-only research-lab foundation
 now adds versioned module manifests, hashed experiment plans, an audited
-execution state machine, short-lived edge capability reports, fixture-only
-Spectra and SOC modules, a simulated Cardputer dashboard and a structured
-local-AI proposal boundary. The local edge application has no network listener
-or execution endpoint. Physical nRF24L01, CC1101, PN532 and photodiode profiles
-are registered only as disabled, unwired and untested candidates. The simulated
-Cardputer dashboard can now make a signed, replay-protected request for edge
-capabilities or a reviewed proposal. The first simulated R1 modules also need
-a short-lived, signed physical-confirmation event bound to the exact plan hash
-before the engine may start them.
+execution state machine, short-lived edge capability reports, fixture-only SOC
+and compatibility modules, a deterministic Spectra v2 channel simulator, a
+simulated Cardputer dashboard and a structured local-AI proposal boundary.
+Spectra v2 provides bounded synthetic framing, ASK/FSK/Manchester/PWM
+modulation, optional Hamming(8,4), deterministic noise and BER/checksum
+metrics. It opens no physical, audio or network adapter. The local edge
+application has no network listener or execution endpoint. Physical
+nRF24L01, CC1101, PN532 and photodiode profiles are registered only as
+disabled, unwired and untested candidates. The simulated Cardputer dashboard
+can now make a signed, replay-protected request for edge capabilities or a
+reviewed proposal. The first simulated R1 modules also need a short-lived,
+signed physical-confirmation event bound to the exact plan hash before the
+engine may start them.
 
 ## Core principle
 
@@ -65,6 +69,8 @@ Natural-language output is never executed directly.
 - [Simulated voice pipeline decision](docs/decisions/ADR-0004-simulated-voice-command-pipeline.md)
 - [Stored asset inventory decision](docs/decisions/ADR-0006-stored-asset-inventory-slice.md)
 - [Simulated passive discovery decision](docs/decisions/ADR-0007-simulated-passive-discovery.md)
+- [Proposed synthetic Spectra decision](docs/decisions/ADR-0008-synthetic-spectra-channel-simulator.md)
+- [Spectra simulation threat model](docs/security/spectra-simulation-threat-model.md)
 - [Research lab platform](docs/product/research-lab-platform.md)
 - [Local edge boundary](services/edge-agent/README.md)
 - [Local edge lab console](apps/edge-lab-console/README.md)

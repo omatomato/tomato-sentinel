@@ -92,7 +92,7 @@ def build_gateway() -> tuple[
         devices,
     )
     modules = ModuleRegistry(load_json(SCHEMAS / "module-manifest.schema.json"))
-    modules.register(load_json(MODULES / "lab.spectra.v1.json"))
+    modules.register(load_json(MODULES / "lab.spectra.v2.json"))
     modules.register(load_json(MODULES / "lab.soc.v1.json"))
     application = LocalEdgeApplication(
         edge_id="edge:local-01",
@@ -107,7 +107,9 @@ def build_gateway() -> tuple[
                     "target_alias": "controlled_fixture",
                     "fixture_aliases": ["baseline"],
                     "parameters": {
+                        "channel": "optical_fixture",
                         "encoding": "manchester",
+                        "error_correction": "hamming84",
                         "duration_seconds": 30,
                         "sample_count": 120,
                         "noise_percent": 10,

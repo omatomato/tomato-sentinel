@@ -20,7 +20,11 @@ from .engine import (
     InMemoryExperimentAuditSink,
     build_policy_registry,
 )
-from .fake_executors import SocFixtureExecutor, SpectraFixtureExecutor
+from .fake_executors import (
+    SocFixtureExecutor,
+    SpectraFixtureExecutor,
+    SpectraSimulationExecutor,
+)
 from .hardware_profiles import (
     HardwareProfileRejectedError,
     InactiveHardwareProfile,
@@ -40,6 +44,7 @@ from .proposals import (
     LocalExperimentModel,
 )
 from .registry import ModuleRegistry, ModuleRejectedError
+from .spectra import SpectraSimulationResult, simulate_spectra_channel
 
 __all__ = [
     "AvailableModule",
@@ -72,8 +77,11 @@ __all__ = [
     "ModuleRejectedError",
     "SocFixtureExecutor",
     "SpectraFixtureExecutor",
+    "SpectraSimulationExecutor",
+    "SpectraSimulationResult",
     "ValidatedCapabilityReport",
     "build_policy_registry",
     "canonical_capability_report_hash",
     "canonical_plan_hash",
+    "simulate_spectra_channel",
 ]

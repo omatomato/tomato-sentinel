@@ -1,0 +1,102 @@
+{
+  "contract_version": 1,
+  "module_id": "lab.spectra",
+  "version": 2,
+  "display_name": "Spectra Channel Lab (simulado)",
+  "category": "spectra",
+  "execution_location": "edge",
+  "risk_class": "R1",
+  "required_profile": "lab",
+  "authorization_kind": "operation_scope",
+  "required_roles": ["researcher"],
+  "required_capabilities": ["synthetic_signal_analysis"],
+  "required_hardware": [],
+  "requires_confirmation": true,
+  "requires_physical_confirmation": true,
+  "maximum_duration_seconds": 120,
+  "maximum_samples": 65536,
+  "supports_cancel": true,
+  "executor_id": "executor:spectra-simulator-v2",
+  "parameters_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+      "channel",
+      "encoding",
+      "error_correction",
+      "duration_seconds",
+      "sample_count",
+      "noise_percent"
+    ],
+    "properties": {
+      "channel": {"enum": ["optical_fixture", "acoustic_fixture"]},
+      "encoding": {"enum": ["manchester", "fsk", "ask", "pwm"]},
+      "error_correction": {"enum": ["none", "hamming84"]},
+      "duration_seconds": {"type": "integer", "minimum": 1, "maximum": 120},
+      "sample_count": {"type": "integer", "minimum": 8, "maximum": 65536},
+      "noise_percent": {"type": "integer", "minimum": 0, "maximum": 50}
+    },
+    "unevaluatedProperties": false
+  },
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+      "execution_mode",
+      "channel",
+      "encoding",
+      "error_correction",
+      "sample_count",
+      "encoded_bit_count",
+      "transmitted_sample_count",
+      "injected_sample_errors",
+      "channel_bit_errors",
+      "channel_ber",
+      "corrected_errors",
+      "uncorrectable_blocks",
+      "bit_errors",
+      "ber",
+      "frame_sync_ok",
+      "checksum_ok"
+    ],
+    "properties": {
+      "execution_mode": {"const": "simulation"},
+      "channel": {"enum": ["optical_fixture", "acoustic_fixture"]},
+      "encoding": {"enum": ["manchester", "fsk", "ask", "pwm"]},
+      "error_correction": {"enum": ["none", "hamming84"]},
+      "sample_count": {"type": "integer", "minimum": 8, "maximum": 65536},
+      "encoded_bit_count": {"type": "integer", "minimum": 8, "maximum": 200000},
+      "transmitted_sample_count": {
+        "type": "integer",
+        "minimum": 8,
+        "maximum": 800000
+      },
+      "injected_sample_errors": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 400000
+      },
+      "channel_bit_errors": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 200000
+      },
+      "channel_ber": {"type": "number", "minimum": 0, "maximum": 1},
+      "corrected_errors": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 200000
+      },
+      "uncorrectable_blocks": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 200000
+      },
+      "bit_errors": {"type": "integer", "minimum": 0, "maximum": 65536},
+      "ber": {"type": "number", "minimum": 0, "maximum": 1},
+      "frame_sync_ok": {"type": "boolean"},
+      "checksum_ok": {"type": "boolean"}
+    },
+    "unevaluatedProperties": false
+  }
+}
