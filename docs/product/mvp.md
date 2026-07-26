@@ -42,8 +42,10 @@ typed command fixture
 
 The initial slice uses text input, a fake camera adapter and a fake
 notification provider. A bounded host-side push-to-talk capture now produces a
-validated device message, but it does not yet access a microphone, use a
-network transport or perform transcription.
+validated device message. Reviewed audio fixtures pass through deterministic
+simulated transcription, exact intent mapping and organization-local camera
+alias resolution into the existing monitoring path. No microphone, network
+transport, speech model or free-form model interpretation is used.
 
 ## Acceptance test
 
@@ -104,4 +106,8 @@ USB HID are outside the first MVP.
 - five-minute command freshness window and 30-second future-clock tolerance;
 - no outbound network destinations;
 - cancellation is cooperative between frame-processing steps;
+- speech recognition accepts only configured audio SHA-256 fixtures;
+- intent extraction accepts only configured exact transcripts;
+- camera names resolve only through organization-local alias configuration;
+- raw audio and transcripts are absent from monitoring results and audit;
 - ordinary tests use no hardware, camera, model or provider.

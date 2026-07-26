@@ -1,3 +1,4 @@
+import hashlib
 import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -13,16 +14,20 @@ from tomato_sentinel_device_protocol import (
     DeviceProtocolValidator,
     DeviceRegistry,
     ProvisionedDevice,
+    PushToTalkRecorder,
     load_board_profile,
 )
 from tomato_sentinel_orchestrator import (
+    CameraAliasResolver,
     CameraRecord,
     CameraState,
     CommandRejectedError,
     ContractValidator,
     DeviceCancelGateway,
+    ExactVoiceIntentExtractor,
     ExecutionContext,
     ExecutionStatus,
+    FixtureSpeechToText,
     FrameObservation,
     InMemoryAuditSink,
     InMemoryCameraRepository,
@@ -34,6 +39,10 @@ from tomato_sentinel_orchestrator import (
     MonitoringJob,
     MonitoringService,
     NotificationChannel,
+    ProposedVoiceIntent,
+    TranscriptionContractValidator,
+    VoiceCommandRejectedError,
+    VoiceMonitoringGateway,
     audit_to_contract,
     camera_monitor_manifest,
     monitoring_outcome_to_contract,
@@ -48,6 +57,7 @@ from tomato_sentinel_orchestrator.monitoring_service import (
 from tomato_sentinel_policy import (
     ActorContext,
     DeviceContext,
+    Profile,
     ResourceGrant,
     ToolRegistry,
     TrustState,
@@ -56,6 +66,9 @@ from tomato_sentinel_policy import (
 ROOT = Path(__file__).parents[3]
 SCHEMAS = ROOT / "packages" / "contracts" / "schemas" / "v1"
 NOW = datetime(2026, 7, 25, 18, 40, tzinfo=UTC)
+VOICE_AUDIO = b"reviewed-simulated-opus-garage-two-minutes"
+VOICE_TRANSCRIPT = "Monitore a câmera da garagem por dois minutos."
+DEVICE_SECRET = b"simulation-device-key-material-32-bytes"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -653,3 +666,261 @@ def test_signed_physical_cancel_reaches_exact_running_job_once() -> None:
         )
     assert error.value.reason_code == "MESSAGE_ID_REPLAYED"
     assert len(audit.events) == 1
+
+
+def voice_fixture(
+    *,
+    active_profile: Profile = Profile.SENTINEL,
+    audio: bytes = VOICE_AUDIO,
+    transcript: str = VOICE_TRANSCRIPT,
+    intent: ProposedVoiceIntent | None = None,
+    aliases: dict[tuple[str, str], str] | None = None,
+) -> tuple[
+    dict[str, object],
+    PushToTalkRecorder,
+    VoiceMonitoringGateway,
+    FixtureSpeechToText,
+]:
+    profile = load_board_profile(
+        load_json(
+            ROOT
+            / "firmware"
+            / "cardputer"
+            / "board_profiles"
+            / "cardputer.original.v1.json"
+        ),
+        load_json(SCHEMAS / "board-profile.schema.json"),
+    )
+    device = CardputerSimulator(
+        device_id="cardputer:01",
+        key_id="device-key:01",
+        secret=DEVICE_SECRET,
+        board_profile=profile,
+        firmware_version="0.1.0-sim",
+        boot_id="boot:voice-01",
+    )
+    if active_profile is not Profile.ASSISTANT:
+        device.switch_profile(
+            active_profile,
+            changed_at=NOW,
+            unlocked=True,
+        )
+    recorder = PushToTalkRecorder(profile)
+    recorder.press("capture:voice-monitor-01", recorded_at=NOW)
+    recorder.append_encoded(audio, duration_ms=1_200)
+    recorder.release(completed_at=NOW + timedelta(milliseconds=1_200))
+    envelope = device.voice_command_message(
+        recorder,
+        sent_at=NOW + timedelta(seconds=2),
+        correlation_id="correlation:voice-monitor-01",
+    )
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=profile,
+            firmware_version="0.1.0-sim",
+        ),
+        DEVICE_SECRET,
+    )
+    protocol_validator = DeviceProtocolValidator(
+        envelope_schema=load_json(SCHEMAS / "device-message.schema.json"),
+        payload_schemas={
+            "voice_command": load_json(SCHEMAS / "voice-command.schema.json")
+        },
+    )
+    digest = f"sha256:{hashlib.sha256(audio).hexdigest()}"
+    speech = FixtureSpeechToText({digest: transcript})
+    extractor = ExactVoiceIntentExtractor(
+        {
+            VOICE_TRANSCRIPT: intent
+            or ProposedVoiceIntent(
+                action="camera.monitor",
+                target_alias="garagem",
+                duration_seconds=120,
+            )
+        }
+    )
+    gateway = VoiceMonitoringGateway(
+        verifier=DeviceMessageVerifier(protocol_validator, registry),
+        speech=speech,
+        transcription_validator=TranscriptionContractValidator(
+            load_json(SCHEMAS / "speech-transcription.schema.json")
+        ),
+        intent_extractor=extractor,
+        aliases=CameraAliasResolver(
+            aliases
+            if aliases is not None
+            else {("org:01", "garagem"): "camera:garage-01"}
+        ),
+    )
+    return envelope, recorder, gateway, speech
+
+
+def test_voice_message_runs_complete_monitoring_path_without_raw_audio_retention() -> (
+    None
+):
+    service, frames, events, push, inbox, audit = build_service()
+    envelope, recorder, gateway, speech = voice_fixture()
+
+    started = gateway.handle(
+        envelope,
+        context(),
+        service,
+        received_at=NOW + timedelta(seconds=2),
+    )
+    recorder.acknowledge_processed("capture:voice-monitor-01", succeeded=True)
+    completed = service.run_to_completion(
+        started.job_id or "",
+        context(),
+        evaluated_at=NOW + timedelta(seconds=10),
+    )
+
+    assert started.status is JobState.RUNNING
+    assert completed.status is JobState.COMPLETED
+    assert speech.calls == 1
+    assert frames.worker_starts == 1
+    assert len(events.events) == 1
+    assert len(push.deliveries) == 1
+    assert len(inbox.deliveries) == 1
+    assert len(audit.events) == 1
+    assert recorder.buffered_bytes == 0
+    public_material = json.dumps(
+        {
+            "outcome": monitoring_outcome_to_contract(completed),
+            "audit": audit_to_contract(audit.events[0]),
+        }
+    )
+    assert VOICE_TRANSCRIPT not in public_material
+    assert VOICE_AUDIO.decode() not in public_material
+
+
+def test_voice_in_assistant_profile_is_rejected_before_transcription() -> None:
+    service, frames, _events, _push, _inbox, _audit = build_service()
+    envelope, _recorder, gateway, speech = voice_fixture(
+        active_profile=Profile.ASSISTANT
+    )
+
+    with pytest.raises(VoiceCommandRejectedError) as error:
+        gateway.handle(
+            envelope,
+            context(),
+            service,
+            received_at=NOW + timedelta(seconds=2),
+        )
+
+    assert error.value.reason_code == "SENTINEL_PROFILE_REQUIRED"
+    assert speech.calls == 0
+    assert frames.worker_starts == 0
+
+
+def test_unknown_transcript_is_not_interpreted_or_dispatched() -> None:
+    service, frames, _events, _push, _inbox, _audit = build_service()
+    envelope, _recorder, gateway, speech = voice_fixture(
+        transcript="Execute alguma coisa diferente."
+    )
+
+    with pytest.raises(VoiceCommandRejectedError) as error:
+        gateway.handle(
+            envelope,
+            context(),
+            service,
+            received_at=NOW + timedelta(seconds=2),
+        )
+
+    assert error.value.reason_code == "TRANSCRIPT_NOT_REGISTERED"
+    assert speech.calls == 1
+    assert frames.worker_starts == 0
+
+
+def test_transcription_cannot_claim_a_different_audio_digest() -> None:
+    validator = TranscriptionContractValidator(
+        load_json(SCHEMAS / "speech-transcription.schema.json")
+    )
+    payload = {
+        "contract_version": 1,
+        "transcription_id": "transcription:01",
+        "provider_id": "speech-provider:fixture-v1",
+        "execution_mode": "simulated",
+        "language": "pt-BR",
+        "text": VOICE_TRANSCRIPT,
+        "audio_sha256": f"sha256:{'a' * 64}",
+        "created_at": "2026-07-25T18:40:02Z",
+    }
+
+    with pytest.raises(VoiceCommandRejectedError) as error:
+        validator.validate(
+            payload,
+            expected_audio_sha256=f"sha256:{'b' * 64}",
+        )
+
+    assert error.value.reason_code == "TRANSCRIPTION_AUDIO_MISMATCH"
+
+
+def test_unknown_camera_alias_starts_no_worker() -> None:
+    service, frames, _events, _push, _inbox, _audit = build_service()
+    envelope, _recorder, gateway, _speech = voice_fixture(
+        intent=ProposedVoiceIntent(
+            action="camera.monitor",
+            target_alias="portao",
+            duration_seconds=120,
+        )
+    )
+
+    with pytest.raises(VoiceCommandRejectedError) as error:
+        gateway.handle(
+            envelope,
+            context(),
+            service,
+            received_at=NOW + timedelta(seconds=2),
+        )
+
+    assert error.value.reason_code == "TARGET_ALIAS_NOT_REGISTERED"
+    assert frames.worker_starts == 0
+
+
+def test_voice_replay_does_not_start_duplicate_worker() -> None:
+    service, frames, _events, _push, _inbox, _audit = build_service()
+    envelope, _recorder, gateway, _speech = voice_fixture()
+    gateway.handle(
+        envelope,
+        context(),
+        service,
+        received_at=NOW + timedelta(seconds=2),
+    )
+
+    with pytest.raises(DeviceMessageRejectedError) as error:
+        gateway.handle(
+            envelope,
+            context(),
+            service,
+            received_at=NOW + timedelta(seconds=3),
+        )
+
+    assert error.value.reason_code == "MESSAGE_ID_REPLAYED"
+    assert frames.worker_starts == 1
+
+
+def test_voice_command_still_obeys_resource_policy() -> None:
+    service, frames, _events, _push, _inbox, audit = build_service()
+    envelope, _recorder, gateway, _speech = voice_fixture()
+    unauthorized = replace(
+        context(),
+        resource_grant=replace(
+            context().resource_grant,
+            resource_ids=frozenset(),
+        ),
+    )
+
+    outcome = gateway.handle(
+        envelope,
+        unauthorized,
+        service,
+        received_at=NOW + timedelta(seconds=2),
+    )
+
+    assert outcome.status is JobState.DENIED
+    assert outcome.reason_code == "TARGET_NOT_AUTHORIZED"
+    assert frames.worker_starts == 0
+    assert audit.events[0].result is ExecutionStatus.DENIED

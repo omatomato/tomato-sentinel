@@ -6,6 +6,7 @@
   "required": [
     "contract_version",
     "capture_id",
+    "active_profile",
     "recorded_at",
     "completed_at",
     "audio",
@@ -14,6 +15,9 @@
   "properties": {
     "contract_version": {"const": 1},
     "capture_id": {"$ref": "#/$defs/typed_id"},
+    "active_profile": {
+      "enum": ["assistant", "sentinel", "inventory", "lab", "recovery"]
+    },
     "recorded_at": {"type": "string", "format": "date-time"},
     "completed_at": {"type": "string", "format": "date-time"},
     "audio": {

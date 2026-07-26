@@ -25,6 +25,9 @@ capability reports, replay protection, visible profiles and physical
 cancellation. The original Cardputer is the primary MVP hardware target; Adv
 is retained only as an explicit future-compatibility profile. Bounded
 push-to-talk capture is simulated without microphone or network access.
+Reviewed audio fixtures can now traverse a deterministic simulated
+speech-to-text and exact-intent path into the existing authorized
+`camera.monitor` workflow.
 
 ## Core principle
 
@@ -45,6 +48,7 @@ Natural-language output is never executed directly.
 - [Development workflow](docs/operations/development-workflow.md)
 - [Language and toolchain decision](docs/decisions/ADR-0002-language-toolchain-and-contracts.md)
 - [Simulated device protocol decision](docs/decisions/ADR-0003-simulated-device-protocol.md)
+- [Simulated voice pipeline decision](docs/decisions/ADR-0004-simulated-voice-command-pipeline.md)
 - [Simulated orchestrator slice](services/orchestrator/README.md)
 - [Original specification snapshot](docs/product/product-specification-original.md)
 

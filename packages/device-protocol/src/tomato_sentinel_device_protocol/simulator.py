@@ -154,9 +154,11 @@ class CardputerSimulator:
         sent_at: datetime,
         correlation_id: str,
     ) -> dict[str, object]:
+        payload = recorder.payload()
+        payload["active_profile"] = self._profile.active_profile.value
         return self._message(
             "voice_command",
-            recorder.payload(),
+            payload,
             sent_at=sent_at,
             correlation_id=correlation_id,
         )

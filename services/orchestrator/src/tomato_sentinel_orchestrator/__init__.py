@@ -50,10 +50,20 @@ from .service import (
     outcome_to_contract,
 )
 from .state_machine import InvalidTransitionError, MonitoringJob
+from .voice_gateway import (
+    CameraAliasResolver,
+    ExactVoiceIntentExtractor,
+    FixtureSpeechToText,
+    ProposedVoiceIntent,
+    TranscriptionContractValidator,
+    VoiceCommandRejectedError,
+    VoiceMonitoringGateway,
+)
 
 __all__ = [
     "AuditEvent",
     "AuditSink",
+    "CameraAliasResolver",
     "CameraRecord",
     "CameraRepository",
     "CameraState",
@@ -64,8 +74,10 @@ __all__ = [
     "ContractValidator",
     "DeviceCancelGateway",
     "EventSink",
+    "ExactVoiceIntentExtractor",
     "ExecutionContext",
     "ExecutionStatus",
+    "FixtureSpeechToText",
     "FrameObservation",
     "FrameSource",
     "InMemoryAuditSink",
@@ -83,7 +95,11 @@ __all__ = [
     "NotificationChannel",
     "NotificationSink",
     "PersonDetectedEvent",
+    "ProposedVoiceIntent",
     "TemporalPersonConfirmer",
+    "TranscriptionContractValidator",
+    "VoiceCommandRejectedError",
+    "VoiceMonitoringGateway",
     "audit_to_contract",
     "camera_monitor_manifest",
     "camera_status_manifest",

@@ -124,6 +124,7 @@ def test_voice_command_contract_accepts_bounded_capture() -> None:
     payload = {
         "contract_version": 1,
         "capture_id": "capture:01",
+        "active_profile": "sentinel",
         "recorded_at": "2026-07-25T18:40:00Z",
         "completed_at": "2026-07-25T18:40:01Z",
         "audio": {
@@ -159,6 +160,7 @@ def test_voice_command_contract_rejects_unbounded_or_invalid_audio(
     payload = {
         "contract_version": 1,
         "capture_id": "capture:01",
+        "active_profile": "sentinel",
         "recorded_at": "2026-07-25T18:40:00Z",
         "completed_at": "2026-07-25T18:40:01Z",
         "audio": {
@@ -172,6 +174,60 @@ def test_voice_command_contract_rejects_unbounded_or_invalid_audio(
         "retention": "delete_after_processing",
     }
     payload["audio"][field] = value
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(payload)
+
+
+def test_speech_transcription_contract_accepts_normalized_text_only() -> None:
+    schema = load_json(SCHEMAS / "speech-transcription.schema.json")
+    payload = {
+        "contract_version": 1,
+        "transcription_id": "transcription:01",
+        "provider_id": "speech-provider:fixture-v1",
+        "execution_mode": "simulated",
+        "language": "pt-BR",
+        "text": "Monitore a câmera da garagem por dois minutos.",
+        "audio_sha256": f"sha256:{'a' * 64}",
+        "created_at": "2026-07-25T18:40:02Z",
+    }
+
+    Draft202012Validator(
+        schema,
+        format_checker=FormatChecker(),
+    ).validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("provider_id", "speech-provider:unknown"),
+        ("execution_mode", "real"),
+        ("language", "auto"),
+        ("text", ""),
+        ("audio_sha256", "sha256:invalid"),
+        ("raw_audio", "must-not-cross-this-contract"),
+    ],
+)
+def test_speech_transcription_contract_rejects_invalid_or_raw_provider_output(
+    field: str,
+    value: str,
+) -> None:
+    schema = load_json(SCHEMAS / "speech-transcription.schema.json")
+    payload = {
+        "contract_version": 1,
+        "transcription_id": "transcription:01",
+        "provider_id": "speech-provider:fixture-v1",
+        "execution_mode": "simulated",
+        "language": "pt-BR",
+        "text": "Monitore a câmera da garagem por dois minutos.",
+        "audio_sha256": f"sha256:{'a' * 64}",
+        "created_at": "2026-07-25T18:40:02Z",
+    }
+    payload[field] = value
 
     with pytest.raises(ValidationError):
         Draft202012Validator(

@@ -24,3 +24,15 @@ The R1 `camera.monitor` slice adds an incremental simulated worker with:
 
 The job may reach the `completed` state, but its audit result remains
 `simulated` because no real camera or detector ran.
+
+The simulated voice gateway adds:
+
+- authenticated bounded voice-message verification;
+- a reviewed audio-digest transcription fixture;
+- normalized transcription validation;
+- exact transcript-to-intent mapping;
+- organization-local camera alias resolution;
+- reuse of the existing command, policy and monitoring boundaries.
+
+It performs no speech inference or network I/O. Unknown audio, transcripts,
+aliases, profiles and device contexts fail closed before worker creation.

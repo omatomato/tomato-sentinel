@@ -84,7 +84,8 @@ Versioned contracts belong in `packages/contracts` and include:
 - camera and detection events;
 - notification requests;
 - audit events;
-- signed capability reports.
+- signed capability reports;
+- normalized speech transcriptions.
 
 All messages include a protocol version, message ID, timestamp, correlation ID,
 producer identity and payload type. Replay windows and clock-skew handling must
