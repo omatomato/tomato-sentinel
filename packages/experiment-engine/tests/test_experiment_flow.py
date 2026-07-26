@@ -31,6 +31,7 @@ from tomato_sentinel_experiments import (
     ModuleRegistry,
     SocFixtureExecutor,
     SpectraFixtureExecutor,
+    SpectraSimulationExecutor,
 )
 from tomato_sentinel_policy import (
     ActorContext,
@@ -58,6 +59,7 @@ def load_json(path: Path) -> dict[str, Any]:
 def module_registry() -> ModuleRegistry:
     registry = ModuleRegistry(load_json(SCHEMAS / "module-manifest.schema.json"))
     registry.register(load_json(MODULES / "lab.spectra.v1.json"))
+    registry.register(load_json(MODULES / "lab.spectra.v2.json"))
     registry.register(load_json(MODULES / "lab.soc.v1.json"))
     return registry
 
@@ -65,7 +67,9 @@ def module_registry() -> ModuleRegistry:
 def proposal_for(module_alias: str) -> dict[str, object]:
     if module_alias == "spectra":
         parameters: dict[str, object] = {
+            "channel": "optical_fixture",
             "encoding": "manchester",
+            "error_correction": "hamming84",
             "duration_seconds": 30,
             "sample_count": 120,
             "noise_percent": 10,
@@ -162,7 +166,7 @@ def build_flow(
     payload, plan = ExperimentProposalBinder(
         validator=proposal_validator,
         plan_validator=plan_validator,
-        module_aliases={"spectra": ("lab.spectra", 1), "soc": ("lab.soc", 1)},
+        module_aliases={"spectra": ("lab.spectra", 2), "soc": ("lab.soc", 1)},
         target_aliases={"controlled_fixture": "lab_target:fixture-01"},
         fixture_aliases={"baseline": "fixture:baseline-01"},
     ).bind(
@@ -199,7 +203,11 @@ def build_flow(
     engine = ExperimentEngine(
         plan_validator=plan_validator,
         module_registry=modules,
-        executors=(SpectraFixtureExecutor(), SocFixtureExecutor()),
+        executors=(
+            SpectraFixtureExecutor(),
+            SpectraSimulationExecutor(),
+            SocFixtureExecutor(),
+        ),
         audit_sink=audit,
     )
     return engine, payload, context, audit, edge
@@ -221,6 +229,12 @@ def test_registered_fixture_modules_complete_as_simulation(module_alias: str) ->
     assert job.state is ExperimentState.COMPLETED
     assert job.result is not None
     assert job.result["execution_mode"] == "simulation"
+    if module_alias == "spectra":
+        assert job.result["channel"] == "optical_fixture"
+        assert job.result["error_correction"] == "hamming84"
+        ber = job.result["ber"]
+        assert isinstance(ber, int | float) and not isinstance(ber, bool)
+        assert 0 <= ber <= 1
     assert [record.state for record in audit.records] == [
         ExperimentState.VALIDATED,
         ExperimentState.AUTHORIZED,
@@ -233,7 +247,9 @@ def test_registered_fixture_modules_complete_as_simulation(module_alias: str) ->
 def test_tampered_bound_plan_is_rejected_before_policy() -> None:
     engine, payload, context, audit, _ = build_flow("spectra")
     payload["parameters"] = {
+        "channel": "optical_fixture",
         "encoding": "fsk",
+        "error_correction": "hamming84",
         "duration_seconds": 30,
         "sample_count": 120,
         "noise_percent": 10,

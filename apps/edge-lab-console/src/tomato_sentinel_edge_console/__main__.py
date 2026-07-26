@@ -106,7 +106,9 @@ def _proposal(module_alias: str) -> Mapping[str, object]:
     parameters: Mapping[str, object]
     if module_alias == "spectra":
         parameters = {
+            "channel": "optical_fixture",
             "encoding": "manchester",
+            "error_correction": "hamming84",
             "duration_seconds": 30,
             "sample_count": 120,
             "noise_percent": 10,

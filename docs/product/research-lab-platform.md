@@ -8,15 +8,42 @@ deterministic authorization and fixture-based experiment executors. It does
 not open a network listener, initialize physical modules, transmit radio
 frames, inject logs or access real captures.
 
-The first registered modules are:
+The registered module line is:
 
-- `lab.spectra` version 1, an R1 synthetic signal-analysis experiment;
+- `lab.spectra` version 1, the retained fixture-only compatibility experiment;
+- `lab.spectra` version 2, an R1 deterministic synthetic channel experiment;
 - `lab.soc` version 1, an R1 synthetic SOC-detection experiment.
 
 Both require the visible `lab` profile, the `researcher` role, an exact
 operation scope, a short-lived authenticated edge capability report, finite
 duration and sample limits, cancellation and audit. Results always include
 `execution_mode: simulation`.
+
+## Spectra channel simulation
+
+`lab.spectra` version 2 turns the original fixed result into a bounded,
+repeatable communication-channel simulation. The payload is generated from
+the exact plan hash and registered fixture identifiers; arbitrary content is
+not accepted. Trusted code then:
+
+1. creates a frame with a fixed preamble, a bounded payload length and CRC32;
+2. optionally applies extended Hamming(8,4) error correction;
+3. maps encoded bits to ASK, FSK, Manchester or PWM synthetic symbols;
+4. injects a finite deterministic error set for an optical or acoustic
+   fixture;
+5. demodulates, decodes and reports channel BER, payload BER, corrected
+   errors, uncorrectable blocks, frame synchronization and checksum status.
+
+Both channel names are models, not physical inputs. The executor imports no
+network, audio, radio, GPIO or filesystem adapter. It never initializes the
+registered hardware candidates and cannot transmit or capture a signal.
+Payloads are limited to 65,536 bits, noise to 50 percent and execution to the
+existing three cancellable engine steps. Version 1 remains registered so old
+plans keep their original schema and executor binding.
+
+The accepted decision and misuse analysis are in
+`docs/decisions/ADR-0008-synthetic-spectra-channel-simulator.md` and
+`docs/security/spectra-simulation-threat-model.md`.
 
 ## Execution flow
 
@@ -99,7 +126,8 @@ and an authorized hardware test.
 
 ## Next safe increment
 
-The next increment should bind an operator-reviewed proposal to an experiment
-plan over this signed path, keeping the fixture executors unchanged. A real
-local model runtime, network transport or physical module should be introduced
-only after its separate provider, transport or hardware decision is accepted.
+The next increment should add a comparison runner that produces a bounded
+matrix across the registered synthetic channels, modulations, noise levels and
+error-correction modes. A real local model runtime, network transport or
+physical module should be introduced only after its separate provider,
+transport or hardware decision is accepted.
