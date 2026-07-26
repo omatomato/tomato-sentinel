@@ -104,6 +104,8 @@ def _authorize_targets(
         grant = request.resource_grant
         if grant is None:
             return _deny(ReasonCode.GRANT_REQUIRED)
+        if not grant.enabled:
+            return _deny(ReasonCode.GRANT_DISABLED)
         if grant.valid_until <= request.evaluated_at:
             return _deny(ReasonCode.GRANT_EXPIRED)
         if not set(request.targets).issubset(grant.resource_ids):

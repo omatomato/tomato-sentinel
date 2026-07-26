@@ -15,9 +15,11 @@ backend infrastructure.
 Tomato Sentinel is in its simulated vertical-slice phase. The repository
 defines the product boundaries, architecture, authorization model, risk policy,
 privacy baseline and upstream-software governance. It also contains the first
-policy-engine core, JSON Schema contracts and an R0 `camera.status` flow using
-fake cameras and idempotent audit. No camera worker, real network access,
-security tool or production service is implemented yet.
+policy-engine core, JSON Schema contracts, an R0 `camera.status` flow and the
+complete simulated R1 `camera.monitor` MVP. The R1 path uses bounded fake
+frames, temporal person confirmation, cancellation, idempotent notification
+and a simulated Cardputer inbox. No real camera or network access, security
+tool or production service is implemented yet.
 
 ## Core principle
 

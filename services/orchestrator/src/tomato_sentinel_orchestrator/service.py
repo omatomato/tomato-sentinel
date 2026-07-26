@@ -1,10 +1,8 @@
 """Synchronous R0 command orchestration with deterministic audit."""
 
-import hashlib
-import json
 from collections.abc import Mapping
 from dataclasses import asdict
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from tomato_sentinel_policy import (
     AuthorizationKind,
@@ -19,6 +17,13 @@ from tomato_sentinel_policy import (
 
 from .adapters import AuditSink, CameraRepository
 from .contracts import CommandRejectedError, ContractValidator
+from .execution import (
+    audit_event,
+    context_matches,
+    hash_json,
+    plan_hash,
+    timestamp_is_fresh,
+)
 from .models import (
     AuditEvent,
     CommandOutcome,
@@ -68,7 +73,7 @@ class CameraStatusService:
         if evaluated_at.tzinfo is None:
             raise ValueError("evaluated_at must be timezone-aware")
         command = self._validator.validate(payload)
-        request_hash = _hash_json(payload)
+        request_hash = hash_json(payload)
         replay_key = (
             context.actor.organization_id,
             context.actor.actor_id,
@@ -81,23 +86,23 @@ class CameraStatusService:
                 raise CommandRejectedError("IDEMPOTENCY_KEY_REUSED")
             return previous_outcome
 
-        if not _timestamp_is_fresh(command, evaluated_at):
+        if not timestamp_is_fresh(command, evaluated_at):
             outcome = self._record_denial(
                 command,
                 context,
                 evaluated_at,
-                plan_hash=_plan_hash(command),
+                plan_hash=plan_hash(command),
                 reason_code="COMMAND_TIMESTAMP_INVALID",
             )
             self._outcomes[replay_key] = (request_hash, outcome)
             return outcome
 
-        if not _context_matches(command, context):
+        if not context_matches(command, context):
             outcome = self._record_denial(
                 command,
                 context,
                 evaluated_at,
-                plan_hash=_plan_hash(command),
+                plan_hash=plan_hash(command),
                 reason_code="COMMAND_CONTEXT_MISMATCH",
             )
             self._outcomes[replay_key] = (request_hash, outcome)
@@ -112,13 +117,13 @@ class CameraStatusService:
                 command,
                 context,
                 evaluated_at,
-                plan_hash=_plan_hash(command),
+                plan_hash=plan_hash(command),
                 reason_code="TARGET_NOT_ACCESSIBLE",
             )
             self._outcomes[replay_key] = (request_hash, outcome)
             return outcome
 
-        plan_hash = _plan_hash(command)
+        plan_digest = plan_hash(command)
         policy_request = PolicyRequest(
             actor=context.actor,
             device=context.device,
@@ -128,7 +133,7 @@ class CameraStatusService:
             targets=command.targets,
             parameters=command.parameters,
             evaluated_at=evaluated_at,
-            plan_hash=plan_hash,
+            plan_hash=plan_digest,
             resource_grant=context.resource_grant,
         )
         decision = evaluate(policy_request, self._registry)
@@ -137,18 +142,20 @@ class CameraStatusService:
                 command,
                 context,
                 evaluated_at,
-                plan_hash=plan_hash,
+                plan_hash=plan_digest,
                 reason_code=decision.reason_code.value,
                 policy_decision=decision.decision.value,
             )
             self._outcomes[replay_key] = (request_hash, outcome)
             return outcome
 
-        event = _audit_event(
+        event = audit_event(
             command,
             context,
             evaluated_at,
-            plan_hash=plan_hash,
+            tool_id=TOOL_ID,
+            tool_version=TOOL_VERSION,
+            plan_digest=plan_digest,
             policy_decision=decision.decision.value,
             reason_code=decision.reason_code.value,
             result=ExecutionStatus.SIMULATED,
@@ -175,11 +182,13 @@ class CameraStatusService:
         reason_code: str,
         policy_decision: str = "deny",
     ) -> CommandOutcome:
-        event = _audit_event(
+        event = audit_event(
             command,
             context,
             evaluated_at,
-            plan_hash=plan_hash,
+            tool_id=TOOL_ID,
+            tool_version=TOOL_VERSION,
+            plan_digest=plan_hash,
             policy_decision=policy_decision,
             reason_code=reason_code,
             result=ExecutionStatus.DENIED,
@@ -193,88 +202,6 @@ class CameraStatusService:
             reason_code=reason_code,
             audit_event_id=event.event_id,
         )
-
-
-def _context_matches(
-    command: ValidatedCommand,
-    context: ExecutionContext,
-) -> bool:
-    return (
-        command.actor_id == context.actor.actor_id
-        and command.organization_id == context.actor.organization_id
-        and command.source_device_id == context.device.device_id
-        and context.actor.organization_id == context.device.organization_id
-    )
-
-
-def _timestamp_is_fresh(
-    command: ValidatedCommand,
-    evaluated_at: datetime,
-) -> bool:
-    return (
-        evaluated_at - timedelta(minutes=5)
-        <= command.requested_at
-        <= evaluated_at + timedelta(seconds=30)
-    )
-
-
-def _plan_hash(command: ValidatedCommand) -> str:
-    return _hash_json(
-        {
-            "action": command.action,
-            "parameters": command.parameters,
-            "targets": command.targets,
-        }
-    )
-
-
-def _hash_json(value: object) -> str:
-    encoded = json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-    ).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
-
-
-def _audit_event(
-    command: ValidatedCommand,
-    context: ExecutionContext,
-    evaluated_at: datetime,
-    *,
-    plan_hash: str,
-    policy_decision: str,
-    reason_code: str,
-    result: ExecutionStatus,
-) -> AuditEvent:
-    event_material = {
-        "command_id": command.command_id,
-        "actor_id": context.actor.actor_id,
-        "organization_id": context.actor.organization_id,
-        "result": result.value,
-    }
-    event_digest = _hash_json(event_material).removeprefix("sha256:")[:32]
-    return AuditEvent(
-        contract_version=1,
-        event_id=f"audit:{event_digest}",
-        timestamp=evaluated_at,
-        actor_id=context.actor.actor_id,
-        organization_id=context.actor.organization_id,
-        device_id=context.device.device_id,
-        profile=command.profile,
-        scope_id=None,
-        tool_id=TOOL_ID,
-        tool_version=TOOL_VERSION,
-        targets=command.targets,
-        parameters_hash=_hash_json(command.parameters),
-        plan_hash=plan_hash,
-        policy_decision=policy_decision,
-        reason_code=reason_code,
-        confirmation_method=None,
-        result=result,
-        correlation_id=command.correlation_id,
-    )
 
 
 def outcome_to_contract(outcome: CommandOutcome) -> dict[str, object]:

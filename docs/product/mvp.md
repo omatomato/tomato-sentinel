@@ -7,14 +7,17 @@ depending on physical hardware or production providers.
 
 ## Current progress
 
-The synchronous R0 `camera.status` precursor is implemented with structured
-validation, owned-resource resolution, deterministic policy, sanitized fake
-camera state, replay protection and idempotent audit.
+The synchronous R0 `camera.status` precursor and the simulated R1
+`camera.monitor` vertical slice are implemented.
 
-This precursor does not satisfy the monitoring MVP below. It intentionally has
-no worker, frame processing, notification or cancellation because it reads
-existing fake state and finishes within one request. The next slice extends the
-same boundaries with the R1 `camera.monitor` state machine.
+The R1 slice includes structured validation, owned-resource resolution,
+deterministic policy, a recorded job state machine, bounded metadata-only fake
+frames, three-frame temporal person confirmation, normalized events,
+idempotent fake push and Cardputer inbox delivery, replay protection,
+cooperative cancellation and terminal audit.
+
+All execution is marked `simulated`. No frame image, snapshot, biometric
+identifier, credential or private stream URL is retained or emitted.
 
 ## Simulated vertical slice
 
@@ -86,3 +89,14 @@ The MVP is complete only when:
 
 Facial recognition, active network probing, RF transmission, NFC writing and
 USB HID are outside the first MVP.
+
+## Verified implementation limits
+
+- one camera per monitoring job;
+- duration from 1 to 300 seconds;
+- at most 300 fake frames and one normalized event per job;
+- person confidence threshold `0.8` across three consecutive frames;
+- five-minute command freshness window and 30-second future-clock tolerance;
+- no outbound network destinations;
+- cancellation is cooperative between frame-processing steps;
+- ordinary tests use no hardware, camera, model or provider.

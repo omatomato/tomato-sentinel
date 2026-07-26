@@ -185,6 +185,13 @@ def test_authorized_camera_monitoring_is_allowed() -> None:
             ReasonCode.GRANT_EXPIRED,
         ),
         (
+            replace(
+                camera_request(),
+                resource_grant=replace(camera_grant(), enabled=False),
+            ),
+            ReasonCode.GRANT_DISABLED,
+        ),
+        (
             replace(camera_request(), targets=("camera:unauthorized",)),
             ReasonCode.TARGET_NOT_AUTHORIZED,
         ),

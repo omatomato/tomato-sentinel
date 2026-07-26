@@ -118,6 +118,10 @@
             },
             "valid_until": {
               "$ref": "#/$defs/date_time"
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": true
             }
           },
           "unevaluatedProperties": false

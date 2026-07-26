@@ -14,6 +14,13 @@
   "requires_physical_confirmation": false,
   "timeout_seconds": 5,
   "maximum_targets": 32,
+  "resource_limits": {
+    "maximum_results": 32
+  },
+  "idempotency_behavior": "command_id",
+  "audit_behavior": "terminal",
+  "cancellation_behavior": "not_applicable",
+  "outbound_network_policy": "none",
   "parameters_schema": {
     "type": "object",
     "maxProperties": 0,

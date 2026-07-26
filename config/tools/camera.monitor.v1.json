@@ -15,6 +15,14 @@
   "timeout_seconds": 330,
   "maximum_duration_seconds": 300,
   "maximum_targets": 1,
+  "resource_limits": {
+    "maximum_frames": 300,
+    "maximum_events": 1
+  },
+  "idempotency_behavior": "command_id_and_event_key",
+  "audit_behavior": "state_transitions_and_terminal",
+  "cancellation_behavior": "cooperative",
+  "outbound_network_policy": "none",
   "parameters_schema": {
     "type": "object",
     "required": ["duration_seconds"],
@@ -29,13 +37,48 @@
   },
   "result_schema": {
     "type": "object",
-    "required": ["job_id", "status"],
+    "required": [
+      "contract_version",
+      "job_id",
+      "status",
+      "execution_mode",
+      "event_ids",
+      "reason_code"
+    ],
     "properties": {
+      "contract_version": {
+        "const": 1
+      },
       "job_id": {
-        "type": "string"
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^job:[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "status": {
-        "enum": ["created", "running", "completed", "cancelled", "failed"]
+        "enum": ["running", "completed", "cancelled", "failed", "denied"]
+      },
+      "execution_mode": {
+        "const": "simulated"
+      },
+      "event_ids": {
+        "type": "array",
+        "maxItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "pattern": "^event:[A-Za-z0-9][A-Za-z0-9._-]*$"
+        }
+      },
+      "reason_code": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$",
+        "maxLength": 96
       }
     },
     "unevaluatedProperties": false

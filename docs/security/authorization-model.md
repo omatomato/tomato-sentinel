@@ -26,7 +26,8 @@ A profile is the visible operating mode of a Cardputer or operator session:
 
 A resource grant authorizes ordinary access to registered resources such as a
 camera, sensor or saved asset group. Sentinel camera monitoring uses a resource
-grant rather than inventing a cybersecurity scope.
+grant rather than inventing a cybersecurity scope. A disabled grant is denied
+even when its resource identifiers and expiry would otherwise match.
 
 ### Operation scope
 
@@ -60,7 +61,8 @@ short expiry. It cannot be replayed for changed parameters.
   },
   "profile": "sentinel",
   "resource_grant": {
-    "resource_ids": ["camera:garage-01"]
+    "resource_ids": ["camera:garage-01"],
+    "enabled": true
   },
   "operation_scope": null,
   "tool": {
@@ -144,7 +146,7 @@ states. Laboratory and R2 operations require `trusted`.
 - unknown tool or version;
 - missing verified capability;
 - wrong profile;
-- expired grant or scope;
+- disabled or expired grant, or expired scope;
 - target outside canonical scope;
 - changed plan after confirmation;
 - replayed confirmation;

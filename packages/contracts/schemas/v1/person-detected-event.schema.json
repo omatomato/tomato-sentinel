@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/person-detected-event.schema.json",
+  "title": "Temporally confirmed person detection",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "event_id",
+    "event_type",
+    "organization_id",
+    "job_id",
+    "camera_id",
+    "confidence",
+    "frame_count",
+    "first_seen_at",
+    "last_seen_at",
+    "snapshot_id",
+    "detector",
+    "execution_mode",
+    "correlation_id"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "event_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "event_type": {
+      "const": "person.detected"
+    },
+    "organization_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "job_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "camera_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "frame_count": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 300
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "snapshot_id": {
+      "type": "null"
+    },
+    "detector": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "const": "fake-person-detector"
+        },
+        "version": {
+          "const": "1.0.0"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "execution_mode": {
+      "const": "simulated"
+    },
+    "correlation_id": {
+      "$ref": "#/$defs/typed_id"
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

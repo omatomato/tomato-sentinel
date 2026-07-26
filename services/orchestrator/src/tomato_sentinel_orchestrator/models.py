@@ -22,6 +22,8 @@ class CameraState(StrEnum):
 class ExecutionStatus(StrEnum):
     SIMULATED = "simulated"
     DENIED = "denied"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
 
 
 @dataclass(frozen=True, slots=True)

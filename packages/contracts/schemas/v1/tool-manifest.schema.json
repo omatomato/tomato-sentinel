@@ -19,6 +19,11 @@
     "requires_physical_confirmation",
     "timeout_seconds",
     "maximum_targets",
+    "resource_limits",
+    "idempotency_behavior",
+    "audit_behavior",
+    "cancellation_behavior",
+    "outbound_network_policy",
     "parameters_schema",
     "result_schema"
   ],
@@ -104,6 +109,40 @@
       "type": "integer",
       "minimum": 1,
       "maximum": 1024
+    },
+    "resource_limits": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "maximum_results": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "maximum_frames": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maximum_events": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "idempotency_behavior": {
+      "enum": ["command_id", "command_id_and_event_key"]
+    },
+    "audit_behavior": {
+      "enum": ["terminal", "state_transitions_and_terminal"]
+    },
+    "cancellation_behavior": {
+      "enum": ["not_applicable", "cooperative", "emergency"]
+    },
+    "outbound_network_policy": {
+      "enum": ["none", "allowlisted"]
     },
     "parameters_schema": {
       "type": "object"

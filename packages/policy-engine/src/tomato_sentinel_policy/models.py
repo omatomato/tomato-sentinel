@@ -60,6 +60,7 @@ class ReasonCode(StrEnum):
     DEVICE_NOT_TRUSTED = "DEVICE_NOT_TRUSTED"
     DURATION_INVALID = "DURATION_INVALID"
     DURATION_LIMIT_EXCEEDED = "DURATION_LIMIT_EXCEEDED"
+    GRANT_DISABLED = "GRANT_DISABLED"
     GRANT_EXPIRED = "GRANT_EXPIRED"
     GRANT_REQUIRED = "GRANT_REQUIRED"
     ORGANIZATION_MISMATCH = "ORGANIZATION_MISMATCH"
@@ -92,6 +93,7 @@ class ResourceGrant:
     organization_id: str
     resource_ids: frozenset[str]
     valid_until: datetime
+    enabled: bool = True
 
 
 @dataclass(frozen=True, slots=True)

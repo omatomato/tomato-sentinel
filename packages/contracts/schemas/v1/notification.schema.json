@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/notification.schema.json",
+  "title": "Simulated notification delivery",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "notification_id",
+    "event_id",
+    "recipient_id",
+    "channel",
+    "title",
+    "body",
+    "idempotency_key",
+    "delivery_status"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "notification_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "event_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "recipient_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "channel": {
+      "enum": ["fake_push", "cardputer_inbox"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^idem:[a-f0-9]{64}$"
+    },
+    "delivery_status": {
+      "const": "simulated"
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

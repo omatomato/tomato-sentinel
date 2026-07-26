@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/job-transition.schema.json",
+  "title": "Job state transition",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "transition_id",
+    "job_id",
+    "previous_state",
+    "requested_action",
+    "resulting_state",
+    "actor_id",
+    "timestamp",
+    "reason",
+    "correlation_id"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": 1
+    },
+    "transition_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "job_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "previous_state": {
+      "oneOf": [
+        {
+          "enum": [
+            "created",
+            "validated",
+            "authorized",
+            "running",
+            "completed",
+            "cancelled",
+            "failed",
+            "denied"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requested_action": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "maxLength": 64
+    },
+    "resulting_state": {
+      "enum": [
+        "created",
+        "validated",
+        "authorized",
+        "running",
+        "completed",
+        "cancelled",
+        "failed",
+        "denied"
+      ]
+    },
+    "actor_id": {
+      "$ref": "#/$defs/typed_id"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 96
+    },
+    "correlation_id": {
+      "$ref": "#/$defs/typed_id"
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}
