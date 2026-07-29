@@ -28,6 +28,7 @@ pythonpath = [
   "packages/policy-engine/src",
   "services/edge-agent/src",
   "services/edge-agent/tests",
+  "services/link-relay/src",
   "services/orchestrator/src",
 ]
 testpaths = ["packages", "services", "tests"]
@@ -45,6 +46,8 @@ files = [
   "packages/policy-engine/src",
   "packages/policy-engine/tests",
   "services/edge-agent/src",
+  "services/link-relay/src",
+  "services/link-relay/tests",
   "services/orchestrator/src",
   "services/orchestrator/tests",
 ]

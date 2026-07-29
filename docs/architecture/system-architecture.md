@@ -39,6 +39,23 @@ Owns local operations that benefit from LAN or device proximity:
 The edge agent is independently identified, scoped and revocable. It is not an
 implicitly trusted backend extension.
 
+For future remote Cardputer operation, the edge agent initiates an outbound
+Tomato Link connection. It does not require a public inbound port on the
+operator's PC. The provider-neutral relay core is currently simulation-only
+and opens no network listener; ADR-0009 records the remaining production
+security blockers.
+
+### Tomato Link relay
+
+The relay routes short-lived opaque frames between one authenticated Cardputer
+endpoint and one authenticated edge endpoint in the same organization. It does
+not inspect or execute inner commands and cannot grant authorization.
+
+Both endpoints are expected to initiate outbound connections so that a
+Cardputer using a phone hotspot can reach an edge node behind NAT or CGNAT.
+Production use requires end-to-end authenticated encryption because TLS
+terminated at the relay would not protect content from the relay operator.
+
 ### Backend
 
 Owns:
@@ -90,6 +107,10 @@ operator
 
 Every boundary validates identity, version, size and authorization context.
 Provider output and discovery responses are untrusted input.
+
+Remote transport adds an untrusted relay between the authenticated device/API
+boundary and the edge. Relay acceptance means only `queued`; the edge still
+authenticates the inner device envelope before replay mutation or policy use.
 
 ## Shared contracts
 
