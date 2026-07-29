@@ -1,6 +1,6 @@
 # ADR-0013: Original Cardputer crypto interoperability evidence
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 
 ## Context
