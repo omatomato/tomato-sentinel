@@ -1,6 +1,6 @@
 # ADR-0014: Tomato Link bounded local pairing framing
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 
 ## Context
