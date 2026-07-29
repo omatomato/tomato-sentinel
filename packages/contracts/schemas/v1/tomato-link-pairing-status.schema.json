@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-pairing-status.schema.json",
+  "title": "Tomato Link sanitized ephemeral pairing status",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "ceremony_id",
+    "participant_role",
+    "state",
+    "fingerprint",
+    "expires_at",
+    "reason_code",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "ceremony_id": {"$ref": "#/$defs/typed_id"},
+    "participant_role": {"enum": ["device", "edge"]},
+    "state": {
+      "enum": [
+        "offered",
+        "awaiting_confirmation",
+        "established",
+        "consumed",
+        "cancelled",
+        "expired"
+      ]
+    },
+    "fingerprint": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{4}(-[a-f0-9]{4}){7}$"
+    },
+    "expires_at": {"type": "string", "format": "date-time"},
+    "reason_code": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+    },
+    "execution_mode": {"const": "simulation"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": ["awaiting_confirmation", "established", "consumed"]
+          }
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {"fingerprint": {"type": "string"}}
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

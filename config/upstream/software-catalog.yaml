@@ -9,7 +9,12 @@ projects:
       repository: cryptography
       commit: e300bbe2f1bec75e5ee7e0ab7b196958831b3db6
       release: 49.0.0
-    purpose: [authenticated_encryption, tomato_link_session_sealing]
+    purpose:
+      [
+        authenticated_encryption,
+        tomato_link_session_sealing,
+        tomato_link_ephemeral_pairing_simulation,
+      ]
     runtime:
       environment: backend_and_ci
       architectures: [amd64, arm64]
@@ -28,7 +33,7 @@ projects:
       filesystem_access: none
       privileged_container: false
       vulnerability_reviewed_at: "2026-07-29"
-      review_notes: "Published advisories reviewed; 49.0.0 is newer than known affected and patched-version boundaries. Only AESGCM is imported."
+      review_notes: "Published advisories reviewed; 49.0.0 is newer than known affected and patched-version boundaries. Usage is limited to AES-GCM in the listed adapter plus X25519 and HKDF-SHA256 in packages/device-protocol/src/tomato_sentinel_device_protocol/ephemeral_pairing.py."
     provenance:
       checksum: "sha256:f89660a348f4f78a92366240a61404e337586ef7f5909a2fef59ca88ef505493"
       signature_verified: false

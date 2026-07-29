@@ -175,6 +175,51 @@ def test_tomato_link_session_lease_accepts_only_non_secret_metadata() -> None:
         Draft202012Validator(schema).validate(lease)
 
 
+def test_tomato_link_pairing_contracts_expose_only_public_metadata() -> None:
+    hello_schema = load_json(SCHEMAS / "tomato-link-pairing-hello.schema.json")
+    status_schema = load_json(SCHEMAS / "tomato-link-pairing-status.schema.json")
+    hello = {
+        "contract_version": 1,
+        "pairing_version": 1,
+        "ceremony_id": "link-pairing:01",
+        "participant_role": "device",
+        "organization_id": "organization:01",
+        "source_endpoint_id": "cardputer:01",
+        "destination_endpoint_id": "edge:home-01",
+        "boot_id": "boot:device-01",
+        "ephemeral_public_key_base64": "A" * 43 + "=",
+        "created_at": "2026-07-29T15:00:00Z",
+        "expires_at": "2026-07-29T15:01:00Z",
+        "execution_mode": "simulation",
+    }
+    status = {
+        "contract_version": 1,
+        "ceremony_id": "link-pairing:01",
+        "participant_role": "device",
+        "state": "awaiting_confirmation",
+        "fingerprint": "1234-5678-9abc-def0-1234-5678-9abc-def0",
+        "expires_at": "2026-07-29T15:01:00Z",
+        "reason_code": None,
+        "execution_mode": "simulation",
+    }
+
+    Draft202012Validator(
+        hello_schema,
+        format_checker=FormatChecker(),
+    ).validate(hello)
+    Draft202012Validator(
+        status_schema,
+        format_checker=FormatChecker(),
+    ).validate(status)
+
+    hello["private_key"] = "must-never-cross-contract"
+    status["root_secret"] = "must-never-cross-contract"
+    with pytest.raises(ValidationError):
+        Draft202012Validator(hello_schema).validate(hello)
+    with pytest.raises(ValidationError):
+        Draft202012Validator(status_schema).validate(status)
+
+
 def test_tomato_link_cancel_frame_rejects_arbitrary_control_type() -> None:
     schema = load_json(SCHEMAS / "tomato-link-cancel-frame.schema.json")
     frame = {

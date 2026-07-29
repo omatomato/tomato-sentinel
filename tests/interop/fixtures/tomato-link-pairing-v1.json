@@ -1,0 +1,30 @@
+{
+  "vector_version": 1,
+  "description": "Language-neutral X25519/HKDF-SHA256 vector for Tomato Link pairing v1",
+  "device_private_key_hex": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+  "device_public_key_base64": "hSDwCYkwp1R0i33ctD73Wg2/Og0mOBr066SpjqqbTmo=",
+  "edge_private_key_hex": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+  "edge_public_key_base64": "3p7bfXt9wbTTW2HC7OQ1Nz+DQ8hbeGdNrfx+FG+IK08=",
+  "shared_secret_hex": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+  "transcript_sha256": "8933a60cdaee7334bceade81de68b085b247ec42543b6c06c6ffe28a9fcbeece",
+  "display_fingerprint": "8933-a60c-daee-7334-bcea-de81-de68-b085",
+  "root_key_id": "link-root-key:8933a60cdaee7334",
+  "root_secret_hex": "a94327d07d843c2610005e199aa01399bfc663f35b858c27e3eb8a836475f662",
+  "hkdf": {
+    "hash": "SHA-256",
+    "length_bytes": 32,
+    "salt": "raw transcript SHA-256 bytes",
+    "info_ascii": "tomato-sentinel/tomato-link/ephemeral-root/v1"
+  },
+  "hello_fields": {
+    "ceremony_id": "link-pairing:01",
+    "organization_id": "organization:01",
+    "source_endpoint_id": "cardputer:01",
+    "destination_endpoint_id": "edge:home-01",
+    "device_boot_id": "boot:device-01",
+    "edge_boot_id": "boot:edge-01",
+    "created_at": "2026-07-29T15:00:00Z",
+    "expires_at": "2026-07-29T15:01:00Z"
+  },
+  "security_note": "Private keys and root are deterministic test data only; never provisioning credentials."
+}

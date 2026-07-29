@@ -13,9 +13,14 @@ ADR-0003. It provides:
   passive-discovery actions with preloaded non-authoritative target IDs;
 - bounded, visible push-to-talk capture with mandatory post-processing deletion;
 - signed physical cancellation requests.
+- a RAM-only, display-confirmed X25519/HKDF pairing simulation with finite
+  expiry, cancellation and language-neutral interoperability vectors.
 
 It performs no network I/O and contains no production credential-storage,
 authenticated-encryption, secure-boot or firmware-signing implementation.
+The pairing model does not open a USB listener, persist a credential or prove
+physical-device interoperability; its credential sink remains an in-memory
+simulation boundary.
 The command menu does not interpret free-form text, enroll cameras or grant
 access; backend target resolution and policy remain authoritative.
 The audio fixture accepts bytes labeled with Opus metadata but does not encode
