@@ -1,6 +1,6 @@
 # ADR-0011: Tomato Link session governance and priority cancellation
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 
 ## Context
