@@ -76,7 +76,7 @@ Natural-language output is never executed directly.
 - [Proposed synthetic Spectra decision](docs/decisions/ADR-0008-synthetic-spectra-channel-simulator.md)
 - [Spectra simulation threat model](docs/security/spectra-simulation-threat-model.md)
 - [Tomato Link foundation decision](docs/decisions/ADR-0009-tomato-link-remote-transport-foundation.md)
-- [Proposed secure Tomato Link decision](docs/decisions/ADR-0010-tomato-link-secure-session-and-wss.md)
+- [Secure Tomato Link decision](docs/decisions/ADR-0010-tomato-link-secure-session-and-wss.md)
 - [Tomato Link threat model](docs/security/tomato-link-threat-model.md)
 - [Research lab platform](docs/product/research-lab-platform.md)
 - [Local edge boundary](services/edge-agent/README.md)
