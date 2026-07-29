@@ -15,6 +15,10 @@ Passive-discovery candidates have a separate untrusted contract. They are
 always labelled as simulated candidates and contain no enrollment grant,
 credential, raw network address or trusted asset identity.
 
+Tomato Link frames define bounded, short-lived opaque routing containers for
+the proposed remote Cardputer path. The v1 frame is simulation-only: base64 is
+not encryption, and relay acceptance is not authorization or execution.
+
 The initial schemas use JSON Schema Draft 2020-12. Schema IDs resolve within
 the `https://schemas.tomato-sentinel.invalid/` documentation namespace; the
 reserved `.invalid` suffix prevents accidental production network resolution.
