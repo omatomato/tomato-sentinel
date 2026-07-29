@@ -1,0 +1,21 @@
+{
+  "vector_version": 1,
+  "description": "Language-neutral bounded local framing vector for a public Tomato Link pairing hello",
+  "wire": {
+    "magic_ascii": "TSLP",
+    "frame_version": 1,
+    "frame_type": "hello",
+    "frame_type_value": 1,
+    "flags": 0,
+    "sequence": 1,
+    "payload_length": 42,
+    "reserved": 0,
+    "checksum_algorithm": "CRC-32/ISO-HDLC",
+    "checksum_hex": "35a1e0a1",
+    "header_bytes": 20,
+    "maximum_payload_bytes": 1024
+  },
+  "payload_utf8": "{\"contract_version\":1,\"pairing_version\":1}",
+  "encoded_frame_hex": "54534c500101000000000001002a000035a1e0a17b22636f6e74726163745f76657273696f6e223a312c2270616972696e675f76657273696f6e223a317d",
+  "security_note": "CRC detects accidental corruption only. It does not authenticate a peer, enroll a device, authorize an operation or protect a credential."
+}

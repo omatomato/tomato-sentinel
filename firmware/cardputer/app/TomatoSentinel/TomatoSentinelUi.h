@@ -92,7 +92,7 @@ class TomatoSentinelUi final {
     drawCard(kSafe);
     drawStatusIcon(28, 58, kSafe, '+');
 
-    label(48, 43, "CRYPTO VECTOR", kSafe);
+    label(48, 43, "PAIRING VECTORS", kSafe);
     display_.setTextSize(2);
     display_.setTextColor(kText, kSurface);
     display_.setCursor(48, 57);

@@ -154,7 +154,7 @@ def test_local_keyboard_input_is_denied_by_default_and_never_transmitted() -> No
         "keyboard.poll(millis())"
     )
     assert (
-        "if (!safe_mode_latched && !cancel_requested && !kCryptoInteropBuild) {"
+        "if (!safe_mode_latched && !cancel_requested && !kInteropEvidenceBuild) {"
         in loop_source
     )
 

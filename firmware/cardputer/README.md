@@ -30,16 +30,16 @@ requires both the original-board compile guard and the link-time NVS guard:
 firmware/cardputer/build-safe.sh <temporary-build-directory>
 ```
 
-ADR-0013 proposes a separate, non-deployable cryptographic interoperability
-image. It verifies the public `tomato-link-pairing-v1` X25519, transcript,
-fingerprint and HKDF-SHA256 vector and two denial controls without initializing
-pairing, keyboard input, storage or networking:
+The non-deployable interoperability image verifies the public
+`tomato-link-pairing-v1` X25519, transcript, fingerprint and HKDF-SHA256 vector
+plus the bounded `tomato-link-local-frame-v1` framing vector and denial
+controls, without initializing pairing, keyboard input, storage or networking:
 
 ```sh
 firmware/cardputer/build-crypto-interop.sh <temporary-build-directory>
 ```
 
-This second image displays `CRYPTO VECTOR`, `NO PAIRING / NO STORAGE` and
+This second image displays `PAIRING VECTORS`, `NO PAIRING / NO STORAGE` and
 `COMPILE-ONLY`. Its deterministic private values are public fixture data and
 are forbidden in ordinary firmware. The script contains no upload command;
 building it is not authorization to place it on hardware.

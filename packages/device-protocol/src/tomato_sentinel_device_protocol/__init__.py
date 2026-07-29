@@ -38,6 +38,18 @@ from .lab_dashboard import (
     LabModuleTile,
     LabPlanReview,
 )
+from .local_pairing_frame import (
+    LOCAL_PAIRING_FRAME_HEADER_BYTES,
+    LOCAL_PAIRING_FRAME_VERSION,
+    MAXIMUM_LOCAL_PAIRING_FRAME_BYTES,
+    MAXIMUM_LOCAL_PAIRING_PAYLOAD_BYTES,
+    LocalPairingFrame,
+    LocalPairingFrameDecoder,
+    LocalPairingFrameRejectedError,
+    LocalPairingFrameType,
+    decode_local_pairing_frame,
+    encode_local_pairing_frame,
+)
 from .models import (
     BoardProfile,
     DeviceIdentityState,
@@ -58,10 +70,14 @@ from .protocol import (
 from .simulator import CardputerSimulator
 
 __all__ = [
+    "LOCAL_PAIRING_FRAME_HEADER_BYTES",
+    "LOCAL_PAIRING_FRAME_VERSION",
     "MAXIMUM_CAPTURE_DURATION_MS",
     "MAXIMUM_ENCODED_AUDIO_BYTES",
     "MAXIMUM_KEY_ROTATIONS_PER_DEVICE",
     "MAXIMUM_LAB_MODULE_TILES",
+    "MAXIMUM_LOCAL_PAIRING_FRAME_BYTES",
+    "MAXIMUM_LOCAL_PAIRING_PAYLOAD_BYTES",
     "MAXIMUM_MENU_CAMERAS",
     "MAXIMUM_MENU_INVENTORIES",
     "MAXIMUM_MENU_NETWORKS",
@@ -89,6 +105,10 @@ __all__ = [
     "LabDashboardState",
     "LabModuleTile",
     "LabPlanReview",
+    "LocalPairingFrame",
+    "LocalPairingFrameDecoder",
+    "LocalPairingFrameRejectedError",
+    "LocalPairingFrameType",
     "NetworkMenuEntry",
     "PairingRejectedError",
     "PairingRole",
@@ -100,6 +120,8 @@ __all__ = [
     "PushToTalkRecorder",
     "RegisteredCommandComposer",
     "VerifiedDeviceMessage",
+    "decode_local_pairing_frame",
+    "encode_local_pairing_frame",
     "load_board_profile",
     "sign_envelope",
 ]
