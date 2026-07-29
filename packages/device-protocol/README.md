@@ -21,6 +21,12 @@ authenticated-encryption, secure-boot or firmware-signing implementation.
 The pairing model does not open a USB listener, persist a credential or prove
 physical-device interoperability; its credential sink remains an in-memory
 simulation boundary.
+The local pairing frame codec adds a transport-neutral, single-frame envelope
+for public hello bytes and fixed empty cancellation. It has a 20-byte header,
+a 1,024-byte payload cap, strict version/type/reserved fields and CRC-32 for
+corruption detection only. Decoding a frame does not authenticate, enroll or
+authorize anything; the strict hello schema and pairing domain validation must
+still run afterward.
 The command menu does not interpret free-form text, enroll cameras or grant
 access; backend target resolution and policy remain authoritative.
 The audio fixture accepts bytes labeled with Opus metadata but does not encode

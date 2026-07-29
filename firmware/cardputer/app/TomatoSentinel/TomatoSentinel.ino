@@ -12,9 +12,20 @@
 #if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
     TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
 #include "TomatoLinkCryptoSelfTest.h"
+#endif
+
+#if defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+    TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1
+#include "TomatoLinkLocalFrameSelfTest.h"
+#endif
+
+#if (defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+     TOMATO_CRYPTO_INTEROP_SELF_TEST == 1) || \
+    (defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+     TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1)
 #if !defined(TOMATO_INTEROP_NON_DEPLOYABLE) || \
     TOMATO_INTEROP_NON_DEPLOYABLE != 1
-#error "Crypto interoperability build must be marked non-deployable"
+#error "Interoperability build must be marked non-deployable"
 #endif
 #endif
 
@@ -42,12 +53,14 @@
 
 namespace {
 
-#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
-    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
-constexpr bool kCryptoInteropBuild = true;
-constexpr char kFirmwareVersion[] = "0.3.0-crypto-interop";
+#if (defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+     TOMATO_CRYPTO_INTEROP_SELF_TEST == 1) || \
+    (defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+     TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1)
+constexpr bool kInteropEvidenceBuild = true;
+constexpr char kFirmwareVersion[] = "0.3.1-pairing-interop";
 #else
-constexpr bool kCryptoInteropBuild = false;
+constexpr bool kInteropEvidenceBuild = false;
 constexpr char kFirmwareVersion[] = "0.2.2-poc";
 #endif
 constexpr char kBoardProfile[] = "board-profile:cardputer-original-v1";
@@ -75,6 +88,10 @@ uint32_t boot_started_at_ms = 0;
 #if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
     TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
 TomatoLinkCryptoSelfTestResult crypto_self_test{false, "not_run"};
+#endif
+#if defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+    TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1
+TomatoLinkLocalFrameSelfTestResult local_frame_self_test{false, "not_run"};
 #endif
 
 SafeBootGuard::ResetClass classifyReset(esp_reset_reason_t reason) {
@@ -192,6 +209,11 @@ void setup() {
   crypto_self_test = runTomatoLinkCryptoSelfTest();
   safe_mode_latched = safe_mode_latched || !crypto_self_test.passed;
 #endif
+#if defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+    TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1
+  local_frame_self_test = runTomatoLinkLocalFrameSelfTest();
+  safe_mode_latched = safe_mode_latched || !local_frame_self_test.passed;
+#endif
 
   // Keep the backlight dark during the bounded, explicit panel initialization.
   if (!display.init()) {
@@ -207,7 +229,7 @@ void setup() {
   display.setBrightness(kOperatingBrightness);
   if (safe_mode_latched) {
     ui.drawSafeMode(rtc_boot_guard.unfinished_boots);
-  } else if (kCryptoInteropBuild) {
+  } else if (kInteropEvidenceBuild) {
     ui.drawCryptoInteropSelfTest();
   } else {
     keyboard.begin(millis());
@@ -232,6 +254,13 @@ void setup() {
       "pairing=disabled storage=disabled secrets=not_logged\n",
       crypto_self_test.status);
 #endif
+#if defined(TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST) && \
+    TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST == 1
+  HWCDCSerial.printf(
+      "LOCAL FRAME INTEROP status=%s vector=tomato-link-local-frame-v1 "
+      "listener=disabled storage=disabled secrets=not_present\n",
+      local_frame_self_test.status);
+#endif
 }
 
 void loop() {
@@ -245,7 +274,7 @@ void loop() {
     ui.drawCancelled();
   }
 
-  if (!safe_mode_latched && !cancel_requested && !kCryptoInteropBuild) {
+  if (!safe_mode_latched && !cancel_requested && !kInteropEvidenceBuild) {
     handleKeyboardEvent(keyboard.poll(millis()));
   }
 

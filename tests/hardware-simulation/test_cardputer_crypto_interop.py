@@ -10,16 +10,21 @@ CRYPTO_HEADER = SKETCH_DIR / "TomatoLinkCrypto.h"
 CRYPTO_SOURCE = SKETCH_DIR / "TomatoLinkCrypto.cpp"
 SELF_TEST = SKETCH_DIR / "TomatoLinkCryptoSelfTest.cpp"
 VECTOR_HEADER = SKETCH_DIR / "TomatoLinkCryptoInteropVector.h"
+LOCAL_FRAME_HEADER = SKETCH_DIR / "TomatoLinkLocalFrame.h"
+LOCAL_FRAME_SOURCE = SKETCH_DIR / "TomatoLinkLocalFrame.cpp"
+LOCAL_FRAME_SELF_TEST = SKETCH_DIR / "TomatoLinkLocalFrameSelfTest.cpp"
+LOCAL_FRAME_VECTOR = SKETCH_DIR / "TomatoLinkLocalFrameInteropVector.h"
 SKETCH = SKETCH_DIR / "TomatoSentinel.ino"
 UI = SKETCH_DIR / "TomatoSentinelUi.h"
 SAFE_BUILD = ROOT / "firmware/cardputer/build-safe.sh"
 INTEROP_BUILD = ROOT / "firmware/cardputer/build-crypto-interop.sh"
 VECTOR_FIXTURE = ROOT / "tests/interop/fixtures/tomato-link-pairing-v1.json"
+LOCAL_FRAME_FIXTURE = ROOT / "tests/interop/fixtures/tomato-link-local-frame-v1.json"
 
 
 def _hex_array(source: str, name: str) -> bytes:
     match = re.search(
-        rf"constexpr uint8_t {name}\[[^\]]+\] = \{{(?P<body>.*?)\}};",
+        rf"constexpr uint8_t {name}\[[^\]]*\] = \{{(?P<body>.*?)\}};",
         source,
         re.DOTALL,
     )
@@ -81,6 +86,31 @@ def test_crypto_adapter_is_bounded_allocation_free_and_fail_closed() -> None:
     assert "String" not in combined
 
 
+def test_cpp_local_frame_matches_python_vector_and_denial_controls() -> None:
+    fixture = json.loads(LOCAL_FRAME_FIXTURE.read_text())
+    vector = LOCAL_FRAME_VECTOR.read_text()
+    header = LOCAL_FRAME_HEADER.read_text()
+    source = LOCAL_FRAME_SOURCE.read_text()
+    self_test = LOCAL_FRAME_SELF_TEST.read_text()
+
+    expected = bytes.fromhex(fixture["encoded_frame_hex"])
+    assert _hex_array(vector, "kEncoded") == expected
+    assert "kMaximumPayloadSize = 1024" in header
+    assert "kHeaderSize = 20" in header
+    assert "0xEDB88320U" in source
+    assert "flags_invalid" in source
+    assert "reserved_invalid" in source
+    assert "payload_too_large" in source
+    assert "checksum_invalid" in source
+    assert "buffer_overflow" in source
+    assert "cancel_payload_invalid" in source
+    assert "checksum_not_rejected" in self_test
+    assert "oversize_not_rejected" in self_test
+    assert "cancel_payload_not_rejected" in self_test
+    assert "buffer_overflow_not_rejected" in self_test
+    assert "cancel_not_terminal" in self_test
+
+
 def test_interop_image_is_visibly_isolated_and_non_deployable() -> None:
     sketch = SKETCH.read_text()
     ui = UI.read_text()
@@ -90,16 +120,17 @@ def test_interop_image_is_visibly_isolated_and_non_deployable() -> None:
     assert "TOMATO_INTEROP_NON_DEPLOYABLE" in sketch
     assert "#error" in sketch
     assert "TOMATO_CRYPTO_INTEROP_SELF_TEST=1" in interop_build
+    assert "TOMATO_LOCAL_FRAME_INTEROP_SELF_TEST=1" in interop_build
     assert "TOMATO_INTEROP_NON_DEPLOYABLE=1" in interop_build
     assert "TOMATO_CRYPTO_INTEROP_SELF_TEST=1" not in default_build
     assert "--upload" not in interop_build
     assert "write-flash" not in interop_build
     assert "-DTOMATO_RUNTIME_WRITE_GUARDS=1" in interop_build
     assert "-DTOMATO_TARGET_CARDPUTER_ORIGINAL=1" in interop_build
-    assert "else if (kCryptoInteropBuild)" in sketch
-    assert "!kCryptoInteropBuild" in sketch
+    assert "else if (kInteropEvidenceBuild)" in sketch
+    assert "!kInteropEvidenceBuild" in sketch
     assert "keyboard.begin(millis());" in sketch
-    assert "CRYPTO VECTOR" in ui
+    assert "PAIRING VECTORS" in ui
     assert "SELF-TEST PASS" in ui
     assert "NO PAIRING / NO STORAGE" in ui
     assert "COMPILE-ONLY" in ui
@@ -114,6 +145,10 @@ def test_interop_sources_do_not_add_transport_storage_or_secret_logging() -> Non
             CRYPTO_SOURCE,
             SELF_TEST,
             VECTOR_HEADER,
+            LOCAL_FRAME_HEADER,
+            LOCAL_FRAME_SOURCE,
+            LOCAL_FRAME_SELF_TEST,
+            LOCAL_FRAME_VECTOR,
             INTEROP_BUILD,
         ]
     )
