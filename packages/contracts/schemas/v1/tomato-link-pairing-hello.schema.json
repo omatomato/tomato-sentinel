@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-pairing-hello.schema.json",
+  "title": "Tomato Link ephemeral pairing hello",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "pairing_version",
+    "ceremony_id",
+    "participant_role",
+    "organization_id",
+    "source_endpoint_id",
+    "destination_endpoint_id",
+    "boot_id",
+    "ephemeral_public_key_base64",
+    "created_at",
+    "expires_at",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "pairing_version": {"const": 1},
+    "ceremony_id": {"$ref": "#/$defs/typed_id"},
+    "participant_role": {"enum": ["device", "edge"]},
+    "organization_id": {"$ref": "#/$defs/typed_id"},
+    "source_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "destination_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "boot_id": {"$ref": "#/$defs/typed_id"},
+    "ephemeral_public_key_base64": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "minLength": 44,
+      "maxLength": 44
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "execution_mode": {"const": "simulation"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

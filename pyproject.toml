@@ -55,6 +55,7 @@ files = [
   "services/link-relay/tests",
   "services/orchestrator/src",
   "services/orchestrator/tests",
+  "tests/interop",
 ]
 warn_unreachable = true
 
