@@ -1,6 +1,6 @@
 # ADR-0009: Tomato Link remote transport foundation
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 
 ## Context
