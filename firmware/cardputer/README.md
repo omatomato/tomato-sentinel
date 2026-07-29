@@ -30,6 +30,20 @@ requires both the original-board compile guard and the link-time NVS guard:
 firmware/cardputer/build-safe.sh <temporary-build-directory>
 ```
 
+ADR-0013 proposes a separate, non-deployable cryptographic interoperability
+image. It verifies the public `tomato-link-pairing-v1` X25519, transcript,
+fingerprint and HKDF-SHA256 vector and two denial controls without initializing
+pairing, keyboard input, storage or networking:
+
+```sh
+firmware/cardputer/build-crypto-interop.sh <temporary-build-directory>
+```
+
+This second image displays `CRYPTO VECTOR`, `NO PAIRING / NO STORAGE` and
+`COMPILE-ONLY`. Its deterministic private values are public fixture data and
+are forbidden in ordinary firmware. The script contains no upload command;
+building it is not authorization to place it on hardware.
+
 Set `TOMATO_ARDUINO_CLI` only when the pinned Arduino CLI executable is not on
 `PATH`. Omitting the original-board marker must fail compilation. Omitting the
 link-time NVS guard produces an artifact that is not eligible for hardware

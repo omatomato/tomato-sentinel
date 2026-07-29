@@ -153,7 +153,10 @@ def test_local_keyboard_input_is_denied_by_default_and_never_transmitted() -> No
     assert loop_source.index("cancelWasPressed()") < loop_source.index(
         "keyboard.poll(millis())"
     )
-    assert "if (!safe_mode_latched && !cancel_requested) {" in loop_source
+    assert (
+        "if (!safe_mode_latched && !cancel_requested && !kCryptoInteropBuild) {"
+        in loop_source
+    )
 
 
 def test_keyboard_mapping_has_compile_time_negative_controls() -> None:

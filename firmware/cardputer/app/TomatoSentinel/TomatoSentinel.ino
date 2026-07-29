@@ -9,6 +9,15 @@
 #include "SafeBootGuard.h"
 #include "TomatoSentinelUi.h"
 
+#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
+#include "TomatoLinkCryptoSelfTest.h"
+#if !defined(TOMATO_INTEROP_NON_DEPLOYABLE) || \
+    TOMATO_INTEROP_NON_DEPLOYABLE != 1
+#error "Crypto interoperability build must be marked non-deployable"
+#endif
+#endif
+
 #if !defined(TOMATO_TARGET_CARDPUTER_ORIGINAL) || \
     TOMATO_TARGET_CARDPUTER_ORIGINAL != 1
 #error "Build refused: select the explicit original Cardputer target"
@@ -33,7 +42,14 @@
 
 namespace {
 
+#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
+constexpr bool kCryptoInteropBuild = true;
+constexpr char kFirmwareVersion[] = "0.3.0-crypto-interop";
+#else
+constexpr bool kCryptoInteropBuild = false;
 constexpr char kFirmwareVersion[] = "0.2.2-poc";
+#endif
 constexpr char kBoardProfile[] = "board-profile:cardputer-original-v1";
 constexpr char kOperatingProfile[] = "ASSISTANT";
 constexpr uint8_t kCancelButtonPin = 0;
@@ -56,6 +72,10 @@ bool button_stable_pressed = false;
 bool one_shot_shift_armed = false;
 uint32_t button_changed_at_ms = 0;
 uint32_t boot_started_at_ms = 0;
+#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
+TomatoLinkCryptoSelfTestResult crypto_self_test{false, "not_run"};
+#endif
 
 SafeBootGuard::ResetClass classifyReset(esp_reset_reason_t reason) {
   switch (reason) {
@@ -167,6 +187,12 @@ void setup() {
   const bool loop_watchdog_ready = esp_task_wdt_status(nullptr) == ESP_OK;
   safe_mode_latched = safe_mode_latched || !loop_watchdog_ready;
 
+#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
+  crypto_self_test = runTomatoLinkCryptoSelfTest();
+  safe_mode_latched = safe_mode_latched || !crypto_self_test.passed;
+#endif
+
   // Keep the backlight dark during the bounded, explicit panel initialization.
   if (!display.init()) {
     HWCDCSerial.println(
@@ -181,6 +207,8 @@ void setup() {
   display.setBrightness(kOperatingBrightness);
   if (safe_mode_latched) {
     ui.drawSafeMode(rtc_boot_guard.unfinished_boots);
+  } else if (kCryptoInteropBuild) {
+    ui.drawCryptoInteropSelfTest();
   } else {
     keyboard.begin(millis());
     ui.drawReady();
@@ -197,6 +225,13 @@ void setup() {
       safe_mode_latched ? "latched" : "off",
       loop_watchdog_ready ? "ready" : "failed",
       rtc_boot_guard.unfinished_boots);
+#if defined(TOMATO_CRYPTO_INTEROP_SELF_TEST) && \
+    TOMATO_CRYPTO_INTEROP_SELF_TEST == 1
+  HWCDCSerial.printf(
+      "CRYPTO INTEROP status=%s vector=tomato-link-pairing-v1 "
+      "pairing=disabled storage=disabled secrets=not_logged\n",
+      crypto_self_test.status);
+#endif
 }
 
 void loop() {
@@ -210,7 +245,7 @@ void loop() {
     ui.drawCancelled();
   }
 
-  if (!safe_mode_latched && !cancel_requested) {
+  if (!safe_mode_latched && !cancel_requested && !kCryptoInteropBuild) {
     handleKeyboardEvent(keyboard.poll(millis()));
   }
 
