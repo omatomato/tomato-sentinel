@@ -8,10 +8,11 @@ production environments or execute security operations.
 Do not disclose suspected vulnerabilities, credentials, private camera
 addresses, captured identifiers or exploit details in a public issue.
 
-While the repository remains private and has no dedicated security contact,
-report findings privately to the repository owner through GitHub. A dedicated
-security contact and coordinated-disclosure process must be added before any
-public release.
+The repository is public. Do not post sensitive reports in issues or
+discussions. Use GitHub's private vulnerability-reporting interface when it is
+available for this repository; otherwise contact the repository owner
+privately through GitHub before sharing details. A dedicated security contact
+and coordinated-disclosure process remain release blockers.
 
 ## Security baseline
 

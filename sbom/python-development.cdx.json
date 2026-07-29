@@ -2,9 +2,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
   "version": 1,
-  "serialNumber": "urn:uuid:31bb6335-bf00-4809-9212-144c2ec90308",
+  "serialNumber": "urn:uuid:ce1ddbec-6093-49db-8aff-b7cb3da43f6a",
   "metadata": {
-    "timestamp": "2026-07-26T01:01:15.420377025Z",
+    "timestamp": "2026-07-29T06:50:41.486465928Z",
     "tools": [
       {
         "vendor": "Astral Software Inc.",
@@ -42,7 +42,20 @@
     },
     {
       "type": "library",
-      "bom-ref": "colorama-4@0.4.6",
+      "bom-ref": "cffi-4@2.1.0",
+      "name": "cffi",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/cffi@2.1.0",
+      "properties": [
+        {
+          "name": "uv:package:marker",
+          "value": "platform_python_implementation != 'PyPy'"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "colorama-5@0.4.6",
       "name": "colorama",
       "version": "0.4.6",
       "purl": "pkg:pypi/colorama@0.4.6",
@@ -55,28 +68,35 @@
     },
     {
       "type": "library",
-      "bom-ref": "iniconfig-5@2.3.0",
+      "bom-ref": "cryptography-6@49.0.0",
+      "name": "cryptography",
+      "version": "49.0.0",
+      "purl": "pkg:pypi/cryptography@49.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "iniconfig-7@2.3.0",
       "name": "iniconfig",
       "version": "2.3.0",
       "purl": "pkg:pypi/iniconfig@2.3.0"
     },
     {
       "type": "library",
-      "bom-ref": "jsonschema-6@4.26.0",
+      "bom-ref": "jsonschema-8@4.26.0",
       "name": "jsonschema",
       "version": "4.26.0",
       "purl": "pkg:pypi/jsonschema@4.26.0"
     },
     {
       "type": "library",
-      "bom-ref": "jsonschema-specifications-7@2025.9.1",
+      "bom-ref": "jsonschema-specifications-9@2025.9.1",
       "name": "jsonschema-specifications",
       "version": "2025.9.1",
       "purl": "pkg:pypi/jsonschema-specifications@2025.9.1"
     },
     {
       "type": "library",
-      "bom-ref": "librt-8@0.13.0",
+      "bom-ref": "librt-10@0.13.0",
       "name": "librt",
       "version": "0.13.0",
       "purl": "pkg:pypi/librt@0.13.0",
@@ -89,87 +109,107 @@
     },
     {
       "type": "library",
-      "bom-ref": "mypy-9@2.3.0",
+      "bom-ref": "mypy-11@2.3.0",
       "name": "mypy",
       "version": "2.3.0",
       "purl": "pkg:pypi/mypy@2.3.0"
     },
     {
       "type": "library",
-      "bom-ref": "mypy-extensions-10@1.1.0",
+      "bom-ref": "mypy-extensions-12@1.1.0",
       "name": "mypy-extensions",
       "version": "1.1.0",
       "purl": "pkg:pypi/mypy-extensions@1.1.0"
     },
     {
       "type": "library",
-      "bom-ref": "packaging-11@26.2",
+      "bom-ref": "packaging-13@26.2",
       "name": "packaging",
       "version": "26.2",
       "purl": "pkg:pypi/packaging@26.2"
     },
     {
       "type": "library",
-      "bom-ref": "pathspec-12@1.1.1",
+      "bom-ref": "pathspec-14@1.1.1",
       "name": "pathspec",
       "version": "1.1.1",
       "purl": "pkg:pypi/pathspec@1.1.1"
     },
     {
       "type": "library",
-      "bom-ref": "pluggy-13@1.6.0",
+      "bom-ref": "pluggy-15@1.6.0",
       "name": "pluggy",
       "version": "1.6.0",
       "purl": "pkg:pypi/pluggy@1.6.0"
     },
     {
       "type": "library",
-      "bom-ref": "pygments-14@2.20.0",
+      "bom-ref": "pycparser-16@3.0",
+      "name": "pycparser",
+      "version": "3.0",
+      "purl": "pkg:pypi/pycparser@3.0",
+      "properties": [
+        {
+          "name": "uv:package:marker",
+          "value": "implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pygments-17@2.20.0",
       "name": "pygments",
       "version": "2.20.0",
       "purl": "pkg:pypi/pygments@2.20.0"
     },
     {
       "type": "library",
-      "bom-ref": "pytest-15@9.1.1",
+      "bom-ref": "pytest-18@9.1.1",
       "name": "pytest",
       "version": "9.1.1",
       "purl": "pkg:pypi/pytest@9.1.1"
     },
     {
       "type": "library",
-      "bom-ref": "referencing-16@0.37.0",
+      "bom-ref": "referencing-19@0.37.0",
       "name": "referencing",
       "version": "0.37.0",
       "purl": "pkg:pypi/referencing@0.37.0"
     },
     {
       "type": "library",
-      "bom-ref": "rpds-py-17@2026.6.3",
+      "bom-ref": "rpds-py-20@2026.6.3",
       "name": "rpds-py",
       "version": "2026.6.3",
       "purl": "pkg:pypi/rpds-py@2026.6.3"
     },
     {
       "type": "library",
-      "bom-ref": "ruff-18@0.15.22",
+      "bom-ref": "ruff-21@0.15.22",
       "name": "ruff",
       "version": "0.15.22",
       "purl": "pkg:pypi/ruff@0.15.22"
     },
     {
       "type": "library",
-      "bom-ref": "types-jsonschema-19@4.26.0.20260518",
+      "bom-ref": "types-jsonschema-22@4.26.0.20260518",
       "name": "types-jsonschema",
       "version": "4.26.0.20260518",
       "purl": "pkg:pypi/types-jsonschema@4.26.0.20260518"
     },
     {
       "type": "library",
-      "bom-ref": "typing-extensions-20@4.16.0",
+      "bom-ref": "typing-extensions-23@4.16.0",
       "name": "typing-extensions",
       "version": "4.16.0",
       "purl": "pkg:pypi/typing-extensions@4.16.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "websockets-24@16.1.1",
+      "name": "websockets",
+      "version": "16.1.1",
+      "purl": "pkg:pypi/websockets@16.1.1"
     }
   ],
   "dependencies": [
@@ -180,95 +220,115 @@
       "ref": "attrs-3@26.1.0"
     },
     {
-      "ref": "colorama-4@0.4.6"
+      "ref": "cffi-4@2.1.0",
+      "dependsOn": [
+        "pycparser-16@3.0"
+      ]
     },
     {
-      "ref": "iniconfig-5@2.3.0"
+      "ref": "colorama-5@0.4.6"
     },
     {
-      "ref": "jsonschema-6@4.26.0",
+      "ref": "cryptography-6@49.0.0",
+      "dependsOn": [
+        "cffi-4@2.1.0"
+      ]
+    },
+    {
+      "ref": "iniconfig-7@2.3.0"
+    },
+    {
+      "ref": "jsonschema-8@4.26.0",
       "dependsOn": [
         "attrs-3@26.1.0",
-        "jsonschema-specifications-7@2025.9.1",
-        "referencing-16@0.37.0",
-        "rpds-py-17@2026.6.3"
+        "jsonschema-specifications-9@2025.9.1",
+        "referencing-19@0.37.0",
+        "rpds-py-20@2026.6.3"
       ]
     },
     {
-      "ref": "jsonschema-specifications-7@2025.9.1",
+      "ref": "jsonschema-specifications-9@2025.9.1",
       "dependsOn": [
-        "referencing-16@0.37.0"
+        "referencing-19@0.37.0"
       ]
     },
     {
-      "ref": "librt-8@0.13.0"
+      "ref": "librt-10@0.13.0"
     },
     {
-      "ref": "mypy-9@2.3.0",
+      "ref": "mypy-11@2.3.0",
       "dependsOn": [
         "ast-serialize-2@0.6.0",
-        "librt-8@0.13.0",
-        "mypy-extensions-10@1.1.0",
-        "pathspec-12@1.1.1",
-        "typing-extensions-20@4.16.0"
+        "librt-10@0.13.0",
+        "mypy-extensions-12@1.1.0",
+        "pathspec-14@1.1.1",
+        "typing-extensions-23@4.16.0"
       ]
     },
     {
-      "ref": "mypy-extensions-10@1.1.0"
+      "ref": "mypy-extensions-12@1.1.0"
     },
     {
-      "ref": "packaging-11@26.2"
+      "ref": "packaging-13@26.2"
     },
     {
-      "ref": "pathspec-12@1.1.1"
+      "ref": "pathspec-14@1.1.1"
     },
     {
-      "ref": "pluggy-13@1.6.0"
+      "ref": "pluggy-15@1.6.0"
     },
     {
-      "ref": "pygments-14@2.20.0"
+      "ref": "pycparser-16@3.0"
     },
     {
-      "ref": "pytest-15@9.1.1",
+      "ref": "pygments-17@2.20.0"
+    },
+    {
+      "ref": "pytest-18@9.1.1",
       "dependsOn": [
-        "colorama-4@0.4.6",
-        "iniconfig-5@2.3.0",
-        "packaging-11@26.2",
-        "pluggy-13@1.6.0",
-        "pygments-14@2.20.0"
+        "colorama-5@0.4.6",
+        "iniconfig-7@2.3.0",
+        "packaging-13@26.2",
+        "pluggy-15@1.6.0",
+        "pygments-17@2.20.0"
       ]
     },
     {
-      "ref": "referencing-16@0.37.0",
+      "ref": "referencing-19@0.37.0",
       "dependsOn": [
         "attrs-3@26.1.0",
-        "rpds-py-17@2026.6.3"
+        "rpds-py-20@2026.6.3"
       ]
     },
     {
-      "ref": "rpds-py-17@2026.6.3"
+      "ref": "rpds-py-20@2026.6.3"
     },
     {
-      "ref": "ruff-18@0.15.22"
+      "ref": "ruff-21@0.15.22"
     },
     {
       "ref": "tomato-sentinel-workspace-1@0.0.0",
       "dependsOn": [
-        "jsonschema-6@4.26.0",
-        "mypy-9@2.3.0",
-        "pytest-15@9.1.1",
-        "ruff-18@0.15.22",
-        "types-jsonschema-19@4.26.0.20260518"
+        "cryptography-6@49.0.0",
+        "jsonschema-8@4.26.0",
+        "mypy-11@2.3.0",
+        "pytest-18@9.1.1",
+        "ruff-21@0.15.22",
+        "types-jsonschema-22@4.26.0.20260518",
+        "websockets-24@16.1.1"
       ]
     },
     {
-      "ref": "types-jsonschema-19@4.26.0.20260518",
+      "ref": "types-jsonschema-22@4.26.0.20260518",
       "dependsOn": [
-        "referencing-16@0.37.0"
+        "referencing-19@0.37.0"
       ]
     },
     {
-      "ref": "typing-extensions-20@4.16.0"
+      "ref": "typing-extensions-23@4.16.0"
+    },
+    {
+      "ref": "websockets-24@16.1.1"
     }
   ]
 }

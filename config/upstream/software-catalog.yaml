@@ -1,6 +1,90 @@
 schema_version: 1
 
 projects:
+  - project_id: pyca-cryptography
+    display_name: cryptography
+    source:
+      provider: pypi
+      owner: pyca
+      repository: cryptography
+      commit: e300bbe2f1bec75e5ee7e0ab7b196958831b3db6
+      release: 49.0.0
+    purpose: [authenticated_encryption, tomato_link_session_sealing]
+    runtime:
+      environment: backend_and_ci
+      architectures: [amd64, arm64]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: services/link-relay/src/tomato_sentinel_link_relay/sealed_payload.py
+    licensing:
+      detected_license: Apache-2.0_OR_BSD-3-Clause
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: none_at_runtime
+      filesystem_access: none
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-29"
+      review_notes: "Published advisories reviewed; 49.0.0 is newer than known affected and patched-version boundaries. Only AESGCM is imported."
+    provenance:
+      checksum: "sha256:f89660a348f4f78a92366240a61404e337586ef7f5909a2fef59ca88ef505493"
+      signature_verified: false
+      reviewed_commit: e300bbe2f1bec75e5ee7e0ab7b196958831b3db6
+    maintenance:
+      last_upstream_activity: "2026-06-12"
+      last_local_review: "2026-07-29"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
+  - project_id: python-websockets
+    display_name: websockets
+    source:
+      provider: pypi
+      owner: python-websockets
+      repository: websockets
+      commit: 01df1e4e4d482cc70dfcd4a13c7bac1e956d4b9a
+      release: 16.1.1
+    purpose: [tomato_link_outbound_wss]
+    runtime:
+      environment: edge_agent_and_ci
+      architectures: [any]
+    integration:
+      mode: native_library
+      status: approved
+      adapter: services/edge-agent/src/tomato_sentinel_edge_agent/secure_websocket.py
+    licensing:
+      detected_license: BSD-3-Clause
+      reviewed: true
+      compatible: true
+      notice_required: true
+    security:
+      trust_level: untrusted_upstream
+      network_access: explicit_wss_destination_only
+      filesystem_access: none
+      privileged_container: false
+      vulnerability_reviewed_at: "2026-07-29"
+      review_notes: "Client only; exact host allowlist, TLS verification, no ambient proxy, no compression, bounded timeouts/messages/queues."
+    provenance:
+      checksum: "sha256:db234eda965dcce15df96bb9709f587cd87d4d52aaf0e80e2f34ec04c7670c57"
+      signature_verified: false
+      reviewed_commit: 01df1e4e4d482cc70dfcd4a13c7bac1e956d4b9a
+    maintenance:
+      last_upstream_activity: "2026-07-17"
+      last_local_review: "2026-07-29"
+      update_policy: manual
+      owner: foundation
+    compatibility:
+      cardputer: not_applicable
+      backend: approved
+      test_environment: linux_amd64
+
   - project_id: uv
     display_name: uv
     source:

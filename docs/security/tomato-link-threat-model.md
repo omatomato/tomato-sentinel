@@ -13,8 +13,10 @@ original Cardputer
                     -> policy and orchestration
 ```
 
-The current code covers only the in-memory relay core and outbound-client state
-machine. It opens no socket and provides no production confidentiality.
+The current code covers the in-memory relay core, an outbound-client state
+machine, a fail-closed WSS adapter and a PC-side end-to-end sealing codec. It
+does not expose a public listener, provision physical keys or provide
+production credentials.
 
 ## Protected assets
 
@@ -55,14 +57,18 @@ of production authentication.
 
 ### Payload confidentiality and integrity
 
-Base64 is not encryption. The current simulation validates only decoded size
-and SHA-256 consistency and must remain local.
+Base64 is not encryption. Unsealed opaque frames remain simulation-only and
+must remain local.
 
-Production requires reviewed end-to-end authenticated encryption between the
-Cardputer and its bound edge node. TLS to the relay alone is insufficient
-because it permits relay plaintext access. Nonces, algorithms, key IDs and
-rotation semantics require a separate accepted ADR. Authentication must occur
-before replay state changes.
+The proposed sealed payload uses AES-256-GCM between an endpoint and its bound
+edge. The outer organization, endpoints, session, frame, sequence and time
+window are authenticated associated data. Altering ciphertext or those fields
+causes decryption to fail. TLS to the relay remains mandatory against on-path
+observers but is not treated as end-to-end confidentiality.
+
+Physical key provisioning, rotation, revocation, recovery and storage remain
+production blockers. Synthetic test keys are not evidence that those controls
+exist.
 
 ### Replay, ordering and expiry
 
@@ -82,6 +88,11 @@ reject new traffic instead of silently dropping existing frames.
 
 Public deployment additionally requires per-principal rate limits, connection
 caps, global capacity protection and safe overload responses.
+
+The WSS client accepts only an exact destination allowlist, verifying TLS 1.2
+or newer, finite timeouts and bounded messages/queues. It disables compression
+and ambient proxy discovery. This reduces, but does not replace, public relay
+rate limiting and authentication.
 
 ### Authorization separation
 
@@ -113,6 +124,11 @@ cancellation is not production-ready.
 - non-increasing sequence;
 - stale, future or overlong expiry;
 - invalid base64, size or digest;
+- altered ciphertext or authenticated routing metadata;
+- wrong key, session or destination;
+- invalid or repeated nonce;
+- insecure TLS context, plaintext WebSocket or unapproved host;
+- credential header injection;
 - oversized payload, queue and pull;
 - acknowledgement by the wrong endpoint;
 - missed heartbeat, reversed clock and retry exhaustion;
@@ -121,8 +137,8 @@ cancellation is not production-ready.
 ## Out of scope for this foundation
 
 - public listener and DNS;
-- production TLS or WebSocket adapter;
-- end-to-end encryption and provisioning;
+- public WebSocket listener and relay hosting;
+- physical key provisioning and durable credential storage;
 - relay persistence and multi-node consistency;
 - audio upload and model-provider transfer;
 - physical Wi-Fi firmware;
