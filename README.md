@@ -49,7 +49,10 @@ engine may start them. Tomato Link now has a bounded in-memory relay, a
 fail-closed outbound WSS client boundary and PC-side AES-256-GCM payload
 sealing with authenticated routing metadata. It still has no public listener,
 configured relay, production credential provider or physical Cardputer key
-provisioning.
+provisioning. A proposed session-governance slice now adds separate simulated
+link credentials, authenticated short leases, HKDF-derived keys, immediate
+rotation/revocation invalidation and an independent encrypted physical-cancel
+lane that remains available when the ordinary relay queue is full.
 
 ## Core principle
 
@@ -78,6 +81,8 @@ Natural-language output is never executed directly.
 - [Tomato Link foundation decision](docs/decisions/ADR-0009-tomato-link-remote-transport-foundation.md)
 - [Secure Tomato Link decision](docs/decisions/ADR-0010-tomato-link-secure-session-and-wss.md)
 - [Tomato Link threat model](docs/security/tomato-link-threat-model.md)
+- [Proposed Tomato Link session governance decision](docs/decisions/ADR-0011-tomato-link-session-governance-and-cancellation.md)
+- [Tomato Link session governance threat model](docs/security/tomato-link-session-governance-threat-model.md)
 - [Research lab platform](docs/product/research-lab-platform.md)
 - [Local edge boundary](services/edge-agent/README.md)
 - [Local edge lab console](apps/edge-lab-console/README.md)

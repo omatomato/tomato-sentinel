@@ -1,9 +1,10 @@
+import base64
 import hashlib
 import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
@@ -16,6 +17,21 @@ from tomato_sentinel_device_protocol import (
     ProvisionedDevice,
     PushToTalkRecorder,
     load_board_profile,
+)
+from tomato_sentinel_link_relay import (
+    AuthenticatedRelayPeer,
+    GovernedTomatoLinkCodec,
+    InMemoryLinkCredentialVault,
+    InMemoryTomatoLinkControlLane,
+    LinkRoute,
+    LinkSessionAuthority,
+    RelayEndpoint,
+    RelayEndpointRole,
+    TomatoLinkCancelFrameValidator,
+    TomatoLinkControlBinding,
+    TomatoLinkSealedPayloadCodec,
+    binding_from_control_frame,
+    build_cancel_frame,
 )
 from tomato_sentinel_orchestrator import (
     CameraAliasResolver,
@@ -666,6 +682,193 @@ def test_signed_physical_cancel_reaches_exact_running_job_once() -> None:
         )
     assert error.value.reason_code == "MESSAGE_ID_REPLAYED"
     assert len(audit.events) == 1
+
+
+def test_remote_priority_lane_delivers_sealed_physical_cancel_to_running_job() -> None:
+    service, _frames, _events, _push, _inbox, audit = build_service()
+    started = service.start(command(), context(), evaluated_at=NOW)
+    profile = load_board_profile(
+        load_json(
+            ROOT
+            / "firmware"
+            / "cardputer"
+            / "board_profiles"
+            / "cardputer.original.v1.json"
+        ),
+        load_json(SCHEMAS / "board-profile.schema.json"),
+    )
+    device = CardputerSimulator(
+        device_id="cardputer:01",
+        key_id="device-key:01",
+        secret=DEVICE_SECRET,
+        board_profile=profile,
+        firmware_version="0.1.0-sim",
+        boot_id="boot:remote-cancel-01",
+    )
+    registry = DeviceRegistry()
+    registry.provision(
+        ProvisionedDevice(
+            device_id="cardputer:01",
+            key_id="device-key:01",
+            board_profile=profile,
+            firmware_version="0.1.0-sim",
+        ),
+        DEVICE_SECRET,
+    )
+    gateway = DeviceCancelGateway(
+        DeviceMessageVerifier(
+            DeviceProtocolValidator(
+                envelope_schema=load_json(SCHEMAS / "device-message.schema.json"),
+                payload_schemas={
+                    "cancel_request": load_json(SCHEMAS / "cancel-request.schema.json")
+                },
+            ),
+            registry,
+        )
+    )
+    cancel_time = NOW + timedelta(seconds=1)
+    envelope = device.physical_cancel_message(
+        started.job_id or "",
+        sent_at=cancel_time,
+        correlation_id="correlation:remote-cancel-01",
+    )
+
+    route = LinkRoute(
+        organization_id="org:01",
+        source_endpoint_id="cardputer:01",
+        destination_endpoint_id="edge:home-01",
+    )
+    link_secret = b"separate-remote-link-root-secret-32-bytes"
+    device_vault = InMemoryLinkCredentialVault()
+    edge_vault = InMemoryLinkCredentialVault()
+    for credential_vault in (device_vault, edge_vault):
+        credential_vault.provision(
+            route,
+            key_id="link-root-key:01",
+            secret=link_secret,
+        )
+    lease_schema = load_json(SCHEMAS / "tomato-link-session-lease.schema.json")
+    issued = LinkSessionAuthority(
+        lease_schema,
+        device_vault,
+        salt_source=lambda _: b"\x41" * 32,
+    ).issue(
+        lease_id="link-lease:remote-cancel-01",
+        session_id="link-session:remote-cancel-01",
+        route=route,
+        now=cancel_time,
+        ttl=timedelta(seconds=60),
+    )
+    accepted = LinkSessionAuthority(lease_schema, edge_vault).accept(
+        issued.lease_contract,
+        received_at=cancel_time,
+    )
+    control_binding = TomatoLinkControlBinding(
+        control_id="link-control:remote-cancel-01",
+        organization_id=route.organization_id,
+        source_endpoint_id=route.source_endpoint_id,
+        destination_endpoint_id=route.destination_endpoint_id,
+        session_id=issued.lease.session_id,
+        sequence=1,
+        control_type="physical_cancel",
+        job_id=started.job_id or "",
+        created_at=cancel_time.isoformat().replace("+00:00", "Z"),
+        expires_at=(cancel_time + timedelta(seconds=20))
+        .isoformat()
+        .replace("+00:00", "Z"),
+    )
+    codec = TomatoLinkSealedPayloadCodec(
+        load_json(SCHEMAS / "tomato-link-sealed-payload.schema.json"),
+        nonce_source=lambda _: b"\x42" * 12,
+    )
+    sealed = GovernedTomatoLinkCodec(codec, device_vault).seal(
+        json.dumps(
+            envelope,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode(),
+        binding=control_binding,
+        session=issued,
+        now=cancel_time,
+    )
+    control_frame = build_cancel_frame(
+        control_id=control_binding.control_id,
+        organization_id=control_binding.organization_id,
+        source_endpoint_id=control_binding.source_endpoint_id,
+        destination_endpoint_id=control_binding.destination_endpoint_id,
+        session_id=control_binding.session_id,
+        sequence=control_binding.sequence,
+        job_id=control_binding.job_id,
+        created_at=cancel_time,
+        expires_at=cancel_time + timedelta(seconds=20),
+        sealed_payload=sealed,
+    )
+    endpoints = (
+        RelayEndpoint(
+            endpoint_id="cardputer:01",
+            organization_id="org:01",
+            role=RelayEndpointRole.DEVICE,
+        ),
+        RelayEndpoint(
+            endpoint_id="edge:home-01",
+            organization_id="org:01",
+            role=RelayEndpointRole.EDGE,
+        ),
+    )
+    lane = InMemoryTomatoLinkControlLane(
+        TomatoLinkCancelFrameValidator(
+            load_json(SCHEMAS / "tomato-link-cancel-frame.schema.json")
+        ),
+        endpoints,
+    )
+    lane.publish(
+        control_frame,
+        peer=AuthenticatedRelayPeer(
+            endpoint_id="cardputer:01",
+            organization_id="org:01",
+            role=RelayEndpointRole.DEVICE,
+            authenticated=True,
+        ),
+        received_at=cancel_time,
+    )
+    received = lane.pull(
+        peer=AuthenticatedRelayPeer(
+            endpoint_id="edge:home-01",
+            organization_id="org:01",
+            role=RelayEndpointRole.EDGE,
+            authenticated=True,
+        ),
+        received_at=cancel_time,
+        limit=1,
+    )[0]
+    opened = GovernedTomatoLinkCodec(codec, edge_vault).open(
+        base64.b64decode(cast(str, received["opaque_payload"])),
+        binding=binding_from_control_frame(received),
+        session=accepted,
+        now=cancel_time,
+    )
+    verified_envelope = json.loads(opened)
+    assert verified_envelope["payload"]["job_id"] == received["job_id"]
+
+    cancelled = gateway.handle(
+        verified_envelope,
+        context(),
+        service,
+        received_at=cancel_time,
+    )
+    lane.acknowledge(
+        cast(str, received["control_id"]),
+        peer=AuthenticatedRelayPeer(
+            endpoint_id="edge:home-01",
+            organization_id="org:01",
+            role=RelayEndpointRole.EDGE,
+            authenticated=True,
+        ),
+        received_at=cancel_time,
+    )
+
+    assert cancelled.status is JobState.CANCELLED
+    assert audit.events[0].result is ExecutionStatus.CANCELLED
 
 
 def voice_fixture(

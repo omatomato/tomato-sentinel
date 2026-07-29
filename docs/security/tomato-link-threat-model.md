@@ -70,6 +70,11 @@ Physical key provisioning, rotation, revocation, recovery and storage remain
 production blockers. Synthetic test keys are not evidence that those controls
 exist.
 
+The proposed session-governance layer separates Tomato Link root credentials
+from device-message credentials, derives 10-to-120-second session keys with
+HKDF-SHA256 and invalidates managed sessions on rotation or revocation. Its
+vault is an in-memory fake, not physical provisioning or secure storage.
+
 ### Replay, ordering and expiry
 
 Frames have short expiry, a unique frame ID and a monotonic sequence scoped to
@@ -108,10 +113,11 @@ resource or create a grant, scope, profile, role or capability.
 G0 retains local priority regardless of network state. A disconnected
 Cardputer displays that state and cannot assume cached authorization.
 
-Because an encrypted relay cannot safely infer inner message meaning, a future
-authenticated control lane must carry bounded cancellation metadata without
-allowing arbitrary priority traffic. Until that design is accepted, remote
-cancellation is not production-ready.
+Because an encrypted relay cannot safely infer arbitrary inner meaning, the
+proposed control lane recognizes only the fixed `physical_cancel` class and
+routes it through an independent bounded queue. The edge still decrypts,
+verifies the signed device envelope and compares the inner and outer job IDs.
+Production scheduling, persistence and hardware latency remain unresolved.
 
 ## Required negative controls
 

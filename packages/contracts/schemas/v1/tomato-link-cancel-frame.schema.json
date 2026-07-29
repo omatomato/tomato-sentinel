@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-cancel-frame.schema.json",
+  "title": "Tomato Link priority physical-cancellation frame",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "control_version",
+    "control_id",
+    "organization_id",
+    "source_endpoint_id",
+    "destination_endpoint_id",
+    "session_id",
+    "sequence",
+    "control_type",
+    "job_id",
+    "created_at",
+    "expires_at",
+    "payload_encoding",
+    "payload_length",
+    "payload_sha256",
+    "opaque_payload",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "control_version": {"const": 1},
+    "control_id": {"$ref": "#/$defs/typed_id"},
+    "organization_id": {"$ref": "#/$defs/typed_id"},
+    "source_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "destination_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "session_id": {"$ref": "#/$defs/typed_id"},
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "control_type": {"const": "physical_cancel"},
+    "job_id": {
+      "type": "string",
+      "pattern": "^job:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "payload_encoding": {"const": "sealed_json_base64"},
+    "payload_length": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2048
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "opaque_payload": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "maxLength": 2732
+    },
+    "execution_mode": {"const": "simulation"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

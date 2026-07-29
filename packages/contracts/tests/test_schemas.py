@@ -143,6 +143,96 @@ def test_device_identity_status_accepts_non_secret_simulation_receipt() -> None:
     ).validate(status)
 
 
+def test_tomato_link_session_lease_accepts_only_non_secret_metadata() -> None:
+    schema = load_json(SCHEMAS / "tomato-link-session-lease.schema.json")
+    lease = {
+        "contract_version": 1,
+        "lease_id": "link-lease:01",
+        "session_id": "link-session:01",
+        "organization_id": "organization:01",
+        "source_endpoint_id": "cardputer:01",
+        "destination_endpoint_id": "edge:home-01",
+        "key_id": "link-root-key:01",
+        "identity_revision": 1,
+        "derivation_algorithm": "HKDF-SHA256",
+        "salt_base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "issued_at": "2026-07-29T09:00:00Z",
+        "expires_at": "2026-07-29T09:01:00Z",
+        "authentication": {
+            "algorithm": "simulation_hmac_sha256",
+            "tag": "0" * 64,
+        },
+        "execution_mode": "simulation",
+    }
+
+    Draft202012Validator(
+        schema,
+        format_checker=FormatChecker(),
+    ).validate(lease)
+
+    lease["root_secret"] = "must-never-cross-contract"
+    with pytest.raises(ValidationError):
+        Draft202012Validator(schema).validate(lease)
+
+
+def test_tomato_link_cancel_frame_rejects_arbitrary_control_type() -> None:
+    schema = load_json(SCHEMAS / "tomato-link-cancel-frame.schema.json")
+    frame = {
+        "contract_version": 1,
+        "control_version": 1,
+        "control_id": "link-control:01",
+        "organization_id": "organization:01",
+        "source_endpoint_id": "cardputer:01",
+        "destination_endpoint_id": "edge:home-01",
+        "session_id": "link-session:01",
+        "sequence": 1,
+        "control_type": "arbitrary_priority_action",
+        "job_id": "job:01",
+        "created_at": "2026-07-29T09:00:00Z",
+        "expires_at": "2026-07-29T09:00:20Z",
+        "payload_encoding": "sealed_json_base64",
+        "payload_length": 1,
+        "payload_sha256": f"sha256:{'0' * 64}",
+        "opaque_payload": "eA==",
+        "execution_mode": "simulation",
+    }
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(frame)
+
+
+def test_tomato_link_status_rejects_false_secure_claim_and_secret_fields() -> None:
+    schema = load_json(SCHEMAS / "tomato-link-status.schema.json")
+    status = {
+        "contract_version": 1,
+        "state": "secure",
+        "indicator": "LINK: DEGRADED",
+        "relay_reachable": True,
+        "end_to_end_encrypted": False,
+        "cancellation_lane_ready": False,
+        "session_expires_at": "2026-07-29T10:01:00Z",
+        "credential_revision": 1,
+        "observed_at": "2026-07-29T10:00:00Z",
+        "execution_mode": "simulation",
+    }
+
+    with pytest.raises(ValidationError):
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).validate(status)
+
+    status["indicator"] = "LINK: SECURE"
+    status["end_to_end_encrypted"] = True
+    status["cancellation_lane_ready"] = True
+    status["root_secret"] = "must-never-be-present"
+    with pytest.raises(ValidationError):
+        Draft202012Validator(schema).validate(status)
+
+
 @pytest.mark.parametrize("secret_field", ["secret", "token", "private_key"])
 def test_device_identity_status_rejects_secret_fields(secret_field: str) -> None:
     schema = load_json(SCHEMAS / "device-identity-status.schema.json")

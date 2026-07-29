@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-session-lease.schema.json",
+  "title": "Tomato Link short-lived session lease",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "lease_id",
+    "session_id",
+    "organization_id",
+    "source_endpoint_id",
+    "destination_endpoint_id",
+    "key_id",
+    "identity_revision",
+    "derivation_algorithm",
+    "salt_base64",
+    "issued_at",
+    "expires_at",
+    "authentication",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "lease_id": {"$ref": "#/$defs/typed_id"},
+    "session_id": {"$ref": "#/$defs/typed_id"},
+    "organization_id": {"$ref": "#/$defs/typed_id"},
+    "source_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "destination_endpoint_id": {"$ref": "#/$defs/typed_id"},
+    "key_id": {"$ref": "#/$defs/typed_id"},
+    "identity_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "derivation_algorithm": {"const": "HKDF-SHA256"},
+    "salt_base64": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "minLength": 44,
+      "maxLength": 44
+    },
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "authentication": {
+      "type": "object",
+      "required": ["algorithm", "tag"],
+      "properties": {
+        "algorithm": {"const": "simulation_hmac_sha256"},
+        "tag": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "execution_mode": {"const": "simulation"}
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

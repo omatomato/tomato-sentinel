@@ -45,3 +45,8 @@ TLS, bounded resources and a separately provided access credential. No public
 relay destination or physical Cardputer credential is configured. The
 end-to-end sealing codec uses only synthetic keys in tests; production key
 provisioning remains blocked by ADR-0010 and the Tomato Link threat model.
+
+The simulated operator view reports `LINK: SECURE` only when the outbound
+transport is connected, a current governed session exists, its credential is
+not revoked and the independent cancellation lane is ready. An open WebSocket
+without every control is shown as `LINK: DEGRADED`, never as secure.
