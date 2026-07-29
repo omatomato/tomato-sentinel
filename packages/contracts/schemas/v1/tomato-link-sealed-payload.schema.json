@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-sealed-payload.schema.json",
+  "title": "Tomato Link end-to-end sealed payload",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "seal_version",
+    "algorithm",
+    "key_id",
+    "nonce_base64",
+    "plaintext_length",
+    "ciphertext_base64"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "seal_version": {"const": 1},
+    "algorithm": {"const": "AES-256-GCM"},
+    "key_id": {"$ref": "#/$defs/typed_id"},
+    "nonce_base64": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "minLength": 16,
+      "maxLength": 16
+    },
+    "plaintext_length": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30000
+    },
+    "ciphertext_base64": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "maxLength": 40024
+    }
+  },
+  "$defs": {
+    "typed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 160
+    }
+  },
+  "unevaluatedProperties": false
+}

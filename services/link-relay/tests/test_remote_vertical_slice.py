@@ -19,7 +19,11 @@ from tomato_sentinel_link_relay import (
     InMemoryTomatoLinkRelay,
     RelayEndpoint,
     RelayEndpointRole,
+    TomatoLinkBinding,
     TomatoLinkFrameValidator,
+    TomatoLinkSealedPayloadCodec,
+    TomatoLinkSessionKey,
+    binding_from_frame,
     build_opaque_frame,
 )
 
@@ -28,6 +32,7 @@ SCHEMAS = ROOT / "packages" / "contracts" / "schemas" / "v1"
 PROFILES = ROOT / "firmware" / "cardputer" / "board_profiles"
 NOW = datetime(2026, 7, 29, 12, 0, tzinfo=UTC)
 SECRET = b"remote-link-simulation-secret-32-bytes"
+LINK_KEY = bytes(range(32))
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -146,6 +151,37 @@ def link_frame(payload: bytes) -> dict[str, object]:
     )
 
 
+def sealed_codec() -> TomatoLinkSealedPayloadCodec:
+    return TomatoLinkSealedPayloadCodec(
+        load_json(SCHEMAS / "tomato-link-sealed-payload.schema.json"),
+        nonce_source=lambda _: b"\x11" * 12,
+    )
+
+
+def link_session_key() -> TomatoLinkSessionKey:
+    return TomatoLinkSessionKey(
+        key_id="link-key:remote-01",
+        organization_id="org:01",
+        source_endpoint_id="cardputer:01",
+        session_id="link-session:remote-01",
+        destination_endpoint_id="edge:home-01",
+        key=LINK_KEY,
+    )
+
+
+def link_binding() -> TomatoLinkBinding:
+    return TomatoLinkBinding(
+        frame_id="link-frame:remote-status-01",
+        organization_id="org:01",
+        source_endpoint_id="cardputer:01",
+        destination_endpoint_id="edge:home-01",
+        session_id="link-session:remote-01",
+        sequence=1,
+        created_at=NOW.isoformat().replace("+00:00", "Z"),
+        expires_at=(NOW + timedelta(seconds=60)).isoformat().replace("+00:00", "Z"),
+    )
+
+
 def test_signed_device_envelope_survives_opaque_remote_route_and_verifies() -> None:
     device, verifier = protocol_stack()
     envelope = device.text_command_message(
@@ -189,3 +225,33 @@ def test_relay_acceptance_cannot_make_tampered_inner_envelope_trusted() -> None:
 
     assert receipt.state == "queued"
     assert rejected.value.reason_code == "AUTHENTICATION_INVALID"
+
+
+def test_signed_envelope_is_sealed_across_relay_before_device_verification() -> None:
+    device, verifier = protocol_stack()
+    envelope = device.text_command_message(
+        command_payload(),
+        sent_at=NOW,
+        correlation_id="correlation:remote-status-01",
+    )
+    codec = sealed_codec()
+    sealed = codec.seal(
+        encode(envelope),
+        binding=link_binding(),
+        session_key=link_session_key(),
+    )
+    link = relay()
+    link.publish(link_frame(sealed), peer=device_peer(), received_at=NOW)
+
+    received = link.pull(peer=edge_peer(), received_at=NOW, limit=1)[0]
+    relay_payload = base64.b64decode(cast(str, received["opaque_payload"]))
+    plaintext = codec.open(
+        relay_payload,
+        binding=binding_from_frame(received),
+        session_key=link_session_key(),
+    )
+    verified = verifier.verify(json.loads(plaintext), received_at=NOW)
+
+    assert b"camera.status" not in relay_payload
+    assert verified.device_id == "cardputer:01"
+    assert verified.payload["action"] == "camera.status"

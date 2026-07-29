@@ -45,7 +45,11 @@ disabled, unwired and untested candidates. The simulated Cardputer dashboard
 can now make a signed, replay-protected request for edge capabilities or a
 reviewed proposal. The first simulated R1 modules also need a short-lived,
 signed physical-confirmation event bound to the exact plan hash before the
-engine may start them.
+engine may start them. Tomato Link now has a bounded in-memory relay, a
+fail-closed outbound WSS client boundary and PC-side AES-256-GCM payload
+sealing with authenticated routing metadata. It still has no public listener,
+configured relay, production credential provider or physical Cardputer key
+provisioning.
 
 ## Core principle
 
@@ -71,6 +75,9 @@ Natural-language output is never executed directly.
 - [Simulated passive discovery decision](docs/decisions/ADR-0007-simulated-passive-discovery.md)
 - [Proposed synthetic Spectra decision](docs/decisions/ADR-0008-synthetic-spectra-channel-simulator.md)
 - [Spectra simulation threat model](docs/security/spectra-simulation-threat-model.md)
+- [Tomato Link foundation decision](docs/decisions/ADR-0009-tomato-link-remote-transport-foundation.md)
+- [Secure Tomato Link decision](docs/decisions/ADR-0010-tomato-link-secure-session-and-wss.md)
+- [Tomato Link threat model](docs/security/tomato-link-threat-model.md)
 - [Research lab platform](docs/product/research-lab-platform.md)
 - [Local edge boundary](services/edge-agent/README.md)
 - [Local edge lab console](apps/edge-lab-console/README.md)

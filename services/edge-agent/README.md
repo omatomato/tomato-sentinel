@@ -36,10 +36,12 @@ proximity. Its application boundary validates authenticated peers and exposes
 only a closed method registry; it does not dynamically execute caller-supplied
 names.
 
-`OutboundTomatoLinkClient` now models the future remote connection lifecycle.
+`OutboundTomatoLinkClient` models the remote connection lifecycle.
 It has finite retries, bounded exponential backoff, a heartbeat timeout and a
-terminal stopped state. It is transport-independent and opens no socket.
+terminal stopped state.
 
-The current Tomato Link path is simulation-only. A production network adapter,
-public relay destination, TLS identity and end-to-end authenticated encryption
-remain blocked by ADR-0009 and its threat model.
+The WSS client boundary requires `wss://`, an exact host allowlist, verifying
+TLS, bounded resources and a separately provided access credential. No public
+relay destination or physical Cardputer credential is configured. The
+end-to-end sealing codec uses only synthetic keys in tests; production key
+provisioning remains blocked by ADR-0010 and the Tomato Link threat model.

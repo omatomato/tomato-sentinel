@@ -41,9 +41,10 @@ implicitly trusted backend extension.
 
 For future remote Cardputer operation, the edge agent initiates an outbound
 Tomato Link connection. It does not require a public inbound port on the
-operator's PC. The provider-neutral relay core is currently simulation-only
-and opens no network listener; ADR-0009 records the remaining production
-security blockers.
+operator's PC. The provider-neutral relay core opens no network listener. The
+edge WSS boundary and PC-side payload sealing are implemented but have no
+configured public destination or production credentials; ADR-0009, ADR-0010
+and the Tomato Link threat model record the remaining blockers.
 
 ### Tomato Link relay
 
@@ -53,8 +54,11 @@ not inspect or execute inner commands and cannot grant authorization.
 
 Both endpoints are expected to initiate outbound connections so that a
 Cardputer using a phone hotspot can reach an edge node behind NAT or CGNAT.
-Production use requires end-to-end authenticated encryption because TLS
-terminated at the relay would not protect content from the relay operator.
+The proposed sealed payload provides end-to-end authenticated encryption for
+inner content because TLS terminated at the relay cannot protect content from
+the relay operator. Production use additionally requires accepted physical key
+provisioning, durable replay state, relay authentication and operational
+controls.
 
 ### Backend
 
