@@ -1,6 +1,6 @@
 # ADR-0012: Tomato Link RAM-only ephemeral bootstrap
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-29
 
 ## Context
