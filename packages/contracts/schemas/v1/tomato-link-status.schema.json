@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tomato-sentinel.invalid/v1/tomato-link-status.schema.json",
+  "title": "Sanitized operator-visible Tomato Link status",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "state",
+    "indicator",
+    "relay_reachable",
+    "end_to_end_encrypted",
+    "cancellation_lane_ready",
+    "session_expires_at",
+    "credential_revision",
+    "observed_at",
+    "execution_mode"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "state": {
+      "enum": [
+        "disconnected",
+        "connecting",
+        "secure",
+        "degraded",
+        "revoked",
+        "stopped"
+      ]
+    },
+    "indicator": {
+      "enum": [
+        "LINK: OFFLINE",
+        "LINK: CONNECTING",
+        "LINK: SECURE",
+        "LINK: DEGRADED",
+        "LINK: REVOKED",
+        "LINK: STOPPED"
+      ]
+    },
+    "relay_reachable": {"type": "boolean"},
+    "end_to_end_encrypted": {"type": "boolean"},
+    "cancellation_lane_ready": {"type": "boolean"},
+    "session_expires_at": {
+      "oneOf": [
+        {"type": "string", "format": "date-time"},
+        {"type": "null"}
+      ]
+    },
+    "credential_revision": {
+      "oneOf": [
+        {"type": "integer", "minimum": 1},
+        {"type": "null"}
+      ]
+    },
+    "observed_at": {"type": "string", "format": "date-time"},
+    "execution_mode": {"const": "simulation"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "disconnected"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: OFFLINE"},
+          "end_to_end_encrypted": {"const": false},
+          "cancellation_lane_ready": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "connecting"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: CONNECTING"},
+          "end_to_end_encrypted": {"const": false},
+          "cancellation_lane_ready": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "secure"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: SECURE"},
+          "relay_reachable": {"const": true},
+          "end_to_end_encrypted": {"const": true},
+          "cancellation_lane_ready": {"const": true},
+          "session_expires_at": {"type": "string"},
+          "credential_revision": {"type": "integer"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "degraded"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: DEGRADED"},
+          "end_to_end_encrypted": {"const": false},
+          "cancellation_lane_ready": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "revoked"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: REVOKED"},
+          "end_to_end_encrypted": {"const": false},
+          "cancellation_lane_ready": {"const": false}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "stopped"}}},
+      "then": {
+        "properties": {
+          "indicator": {"const": "LINK: STOPPED"},
+          "end_to_end_encrypted": {"const": false},
+          "cancellation_lane_ready": {"const": false}
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

@@ -10,7 +10,7 @@ import json
 import secrets
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -49,6 +49,53 @@ class TomatoLinkBinding:
                 "destination_endpoint_id": self.destination_endpoint_id,
                 "expires_at": self.expires_at,
                 "frame_id": self.frame_id,
+                "organization_id": self.organization_id,
+                "sequence": self.sequence,
+                "session_id": self.session_id,
+                "source_endpoint_id": self.source_endpoint_id,
+            }
+        )
+
+
+class TomatoLinkSealingBinding(Protocol):
+    @property
+    def organization_id(self) -> str: ...
+
+    @property
+    def source_endpoint_id(self) -> str: ...
+
+    @property
+    def destination_endpoint_id(self) -> str: ...
+
+    @property
+    def session_id(self) -> str: ...
+
+    def associated_data(self) -> bytes: ...
+
+
+@dataclass(frozen=True, slots=True)
+class TomatoLinkControlBinding:
+    control_id: str
+    organization_id: str
+    source_endpoint_id: str
+    destination_endpoint_id: str
+    session_id: str
+    sequence: int
+    control_type: str
+    job_id: str
+    created_at: str
+    expires_at: str
+
+    def associated_data(self) -> bytes:
+        return _canonical_json(
+            {
+                "binding_version": 2,
+                "control_id": self.control_id,
+                "control_type": self.control_type,
+                "created_at": self.created_at,
+                "destination_endpoint_id": self.destination_endpoint_id,
+                "expires_at": self.expires_at,
+                "job_id": self.job_id,
                 "organization_id": self.organization_id,
                 "sequence": self.sequence,
                 "session_id": self.session_id,
@@ -119,7 +166,7 @@ class TomatoLinkSealedPayloadCodec:
         self,
         plaintext: bytes,
         *,
-        binding: TomatoLinkBinding,
+        binding: TomatoLinkSealingBinding,
         session_key: TomatoLinkSessionKey,
     ) -> bytes:
         if not plaintext or len(plaintext) > MAXIMUM_SEALED_PLAINTEXT_BYTES:
@@ -159,7 +206,7 @@ class TomatoLinkSealedPayloadCodec:
         self,
         sealed_payload: bytes,
         *,
-        binding: TomatoLinkBinding,
+        binding: TomatoLinkSealingBinding,
         session_key: TomatoLinkSessionKey,
     ) -> bytes:
         _require_key_binding(binding, session_key)
@@ -214,8 +261,28 @@ def binding_from_frame(frame: Mapping[str, object]) -> TomatoLinkBinding:
         raise TomatoLinkSealRejectedError("LINK_SEAL_BINDING_INVALID") from error
 
 
+def binding_from_control_frame(
+    frame: Mapping[str, object],
+) -> TomatoLinkControlBinding:
+    try:
+        return TomatoLinkControlBinding(
+            control_id=cast(str, frame["control_id"]),
+            organization_id=cast(str, frame["organization_id"]),
+            source_endpoint_id=cast(str, frame["source_endpoint_id"]),
+            destination_endpoint_id=cast(str, frame["destination_endpoint_id"]),
+            session_id=cast(str, frame["session_id"]),
+            sequence=cast(int, frame["sequence"]),
+            control_type=cast(str, frame["control_type"]),
+            job_id=cast(str, frame["job_id"]),
+            created_at=cast(str, frame["created_at"]),
+            expires_at=cast(str, frame["expires_at"]),
+        )
+    except KeyError as error:
+        raise TomatoLinkSealRejectedError("LINK_SEAL_BINDING_INVALID") from error
+
+
 def _require_key_binding(
-    binding: TomatoLinkBinding,
+    binding: TomatoLinkSealingBinding,
     session_key: TomatoLinkSessionKey,
 ) -> None:
     if (

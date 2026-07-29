@@ -60,6 +60,13 @@ the relay operator. Production use additionally requires accepted physical key
 provisioning, durable replay state, relay authentication and operational
 controls.
 
+Simulated session governance keeps Tomato Link root credentials separate from
+device-message credentials and derives short-lived route-bound session keys.
+An independent relay lane accepts only sealed physical-cancellation controls;
+it has separate capacity from ordinary frames. The edge, not the relay,
+decrypts the control, verifies the signed device envelope and routes it to the
+existing exact-job cancellation gateway.
+
 ### Backend
 
 Owns:
