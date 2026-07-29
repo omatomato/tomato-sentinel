@@ -510,7 +510,12 @@ projects:
       repository: arduino-esp32
       commit: 0d1440d1be38ab530d274fe87ee88565fe167392
       release: 3.3.10
-    purpose: [esp32s3_framework, firmware_runtime]
+    purpose:
+      [
+        esp32s3_framework,
+        firmware_runtime,
+        tomato_link_crypto_interop,
+      ]
     runtime:
       environment: cardputer_firmware
       architectures: [xtensa_esp32s3]
@@ -529,7 +534,7 @@ projects:
       filesystem_access: firmware_build_and_device_flash
       privileged_container: false
       vulnerability_reviewed_at: "2026-07-25"
-      review_notes: "Eight advisories reviewed; runtime issues affecting older WebServer and NetBIOS code are fixed by 3.3.10. Network features remain disabled in the proof of concept."
+      review_notes: "Eight advisories reviewed; runtime issues affecting older WebServer and NetBIOS code are fixed by 3.3.10. Network features remain disabled in the proof of concept. The bundled ESP-IDF 5.5.4 Mbed TLS fork at commit ffb280bb63c78bfec1e1ab55040671768c85c923 was reviewed for Curve25519 point validation and little-endian serialization plus HMAC-SHA256 used by the compile-only Tomato Link interoperability adapter."
     provenance:
       checksum: "sha256:05cbb2cac185265b8b64f1dfa6982e4ae6d57db67f690a291f119a0b2b6aaab2"
       signature_verified: false

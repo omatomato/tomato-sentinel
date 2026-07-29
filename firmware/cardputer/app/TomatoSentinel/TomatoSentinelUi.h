@@ -87,6 +87,21 @@ class TomatoSentinelUi final {
     drawFooter(kWarning, "LOCKED", kMuted, "G0+USB RECOVERY");
   }
 
+  void drawCryptoInteropSelfTest() {
+    beginFrame();
+    drawCard(kSafe);
+    drawStatusIcon(28, 58, kSafe, '+');
+
+    label(48, 43, "CRYPTO VECTOR", kSafe);
+    display_.setTextSize(2);
+    display_.setTextColor(kText, kSurface);
+    display_.setCursor(48, 57);
+    display_.print("SELF-TEST PASS");
+    label(48, 82, "NO PAIRING / NO STORAGE", kMuted);
+
+    drawFooter(kDanger, "G0: CANCEL", kWarning, "COMPILE-ONLY");
+  }
+
   void drawCancelled() {
     beginFrame();
     drawCard(kDanger);
